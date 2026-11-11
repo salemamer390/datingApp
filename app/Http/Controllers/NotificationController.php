@@ -9,7 +9,10 @@ class NotificationController extends Controller
 {
     public function index(Request $r)
     {
-        $rows = Feed::where('user_id', $r->user()->id)->orderByDesc('id')->limit(50)->get();
+        $hideSafety = ($r->user()->settings['notifySafety'] ?? true) === false;
+        $rows = Feed::where('user_id', $r->user()->id)
+            ->when($hideSafety, fn ($q) => $q->where('type', '!=', 'safety'))
+            ->orderByDesc('id')->limit(50)->get();
         return ['notifications' => $rows->map(fn ($n) => [
             'id' => $n->id, 'type' => $n->type, 'title' => $n->title, 'body' => $n->body, 'href' => $n->href,
             'at' => $n->created_at, 'unread' => $n->read_at === null,
