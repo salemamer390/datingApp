@@ -15,6 +15,7 @@
 
   function current() {
     try {
+      try { var gt = JSON.parse(localStorage.getItem('__GT_TRANSLATE_LANGS') || 'null'); if (gt && gt.tgtLang && gt.tgtLang !== 'en') return 'en'; } catch (e) {}
       return localStorage.getItem('loveconnect_lang') || (window.LC && LC.me && LC.me.language) || 'en';
     } catch (e) { return 'en'; }
   }
@@ -41,10 +42,10 @@
   function translateAttrs(el) {
     ATTRS.forEach(function (a) {
       var v = el.getAttribute(a);
-      if (!v || !/[A-Za-z]/.test(v)) return;
+      if (!v) return;
       var key = 'data-lc-orig-' + a;
       var o = el.getAttribute(key);
-      if (o == null) { o = v; el.setAttribute(key, o); }
+      if (o == null) { if (!/[A-Za-z]/.test(v)) return; o = v; el.setAttribute(key, o); }
       var t = translateString(o);
       if (el.getAttribute(a) !== t) el.setAttribute(a, t);
     });
@@ -53,7 +54,10 @@
     if (!root) return;
     var it = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
       acceptNode: function (n) {
-        if (!n.nodeValue || !/[A-Za-z]/.test(n.nodeValue)) return NodeFilter.FILTER_REJECT;
+        if (!n.nodeValue) return NodeFilter.FILTER_REJECT;
+        // Nodes already translated (e.g. to Arabic) keep their English original in the
+        // map; without this they would be skipped and could never switch back to English.
+        if (!/[A-Za-z]/.test(n.nodeValue) && !originals.has(n)) return NodeFilter.FILTER_REJECT;
         var p = n.parentNode;
         if (!p) return NodeFilter.FILTER_REJECT;
         var tag = p.nodeName;
