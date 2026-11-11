@@ -32,11 +32,32 @@ Your original HTML/Bootstrap front end, served unchanged by Laravel and connecte
 ```
 composer install
 cp .env.example .env && php artisan key:generate
-touch database/database.sqlite
 php artisan migrate
 php artisan serve
 ```
-Open http://127.0.0.1:8000. Optional, development only: `php artisan db:seed --class=DemoMembersSeeder` adds 3,000 fictional members (refuses to run in production). Do not launch with fake members.
+The example configuration uses MySQL (`loveconnect`). If you prefer SQLite for a quick local run, change `DB_CONNECTION` back to `sqlite` and create `database/database.sqlite`. Open http://127.0.0.1:8000. Optional, development only: `php artisan db:seed --class=DemoMembersSeeder` adds 3,000 fictional members (refuses to run in production). Do not launch with fake members.
+
+## تشغيل التطبيق على XAMPP مع MySQL
+
+هذا المشروع يستخدم Laravel 12، وهو متوافق مع PHP 8.2 الموجود في XAMPP لديك.
+
+1. شغّل Apache و MySQL من XAMPP.
+2. افتح phpMyAdmin على `http://localhost/phpmyadmin` وأنشئ قاعدة بيانات باسم `loveconnect` بترميز `utf8mb4_unicode_ci`، أو نفّذ الملف `database/create_loveconnect_database.sql`.
+3. انسخ `.env.example` إلى `.env` وعدّل `DB_USERNAME` و`DB_PASSWORD` إذا كان حساب MySQL لديك يستخدم كلمة مرور.
+4. من مجلد المشروع نفّذ:
+
+   ```bash
+   composer install
+   php artisan key:generate
+   php artisan migrate
+   php artisan storage:link
+   ```
+
+5. افتح `http://localhost/datingApp/public`.
+
+   إذا كان Apache مضبوطًا على VirtualHost يشير مباشرة إلى مجلد `public`، استخدم رابط الـ VirtualHost بدل `/datingApp/public`. لا تجعل DocumentRoot يشير إلى جذر المشروع، لأن مجلد `public` هو نقطة الدخول الآمنة.
+
+لإضافة بيانات تجريبية محليًا فقط: `php artisan db:seed --class=DemoMembersSeeder`.
 
 ## Before going live
 - Use MySQL/Postgres, `APP_ENV=production`, `APP_DEBUG=false`, HTTPS, a real `APP_KEY`
