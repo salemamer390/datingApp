@@ -135,7 +135,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const code = item.dataset.langCode || "en";
       LCAppearance.setLanguage(code);
       showLanguage(code);
-      notify(`Language selected: ${item.dataset.language}. Full translation can be added next.`);
+      notify(`Language selected: ${item.dataset.language}.`);
     });
   });
 
