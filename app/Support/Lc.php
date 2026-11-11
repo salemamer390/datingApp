@@ -41,6 +41,7 @@ class Lc
             'photos' => $photos,
             'photo_items' => $u->photos->map(fn ($p) => ['id' => $p->id, 'url' => $p->url()])->values()->all(),
             'gender' => $u->gender,
+            'onboarding_complete' => $u->hasCompletedOnboarding(),
             'profile' => [
                 'name' => $u->name,
                 'age' => $u->age ? (string) $u->age : '',
