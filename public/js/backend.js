@@ -8,6 +8,10 @@
   'use strict';
   var LC = window.LC || {};
   var me = LC.me;
+  // Apply the account's saved language on every page (fresh browsers have no local choice yet).
+  if (me && me.language && window.LCAppearance) {
+    try { if (localStorage.getItem('loveconnect_lang') !== me.language) window.LCAppearance.setLanguage(me.language); } catch (e) {}
+  }
   // Optional wording fixes for sample text that is no longer true. OFF by default so the front end stays exactly as designed.
   var TEXT_FIXES = window.LC_TEXT_FIXES === true;
   var page = (location.pathname.split('/').pop() || 'index.html').replace('.html', '') || 'index';
@@ -69,6 +73,9 @@
     if (f.id === 'quickSignupForm') {
       var sel = f.querySelector('.choice-btn[data-group="gender"].selected');
       if (sel) sessionStorage.setItem('lc_quick_gender', sel.dataset.value);
+      var goalBtn = f.querySelector('.choice-btn[data-group="goal"].selected');
+      if (goalBtn) sessionStorage.setItem('loveconnect_goal', goalBtn.dataset.value);
+      if ($('ageTo')) sessionStorage.setItem('lc_quick_age_to', $('ageTo').value);
       return; // original handler opens the sign-up modal
     }
     if (f.id === 'signupModalForm' || f.id === 'signupForm') {
@@ -77,13 +84,56 @@
       var name = ($('signupName') && f.contains($('signupName')) ? $('signupName').value : ins[0].value).trim();
       var email = f.querySelector('input[type=email]').value;
       var pw = f.querySelector('input[type=password]').value;
-      api('/api/signup', { method: 'POST', body: { name: name, email: email, password: pw } })
-        .then(function (r) { location.href = r.redirect || '/onboarding.html'; }, fail);
+      var body = { name: name, email: email, password: pw };
+      // Choices made on the landing quick-start card are carried into the account.
+      var qg = sessionStorage.getItem('lc_quick_gender');
+      if (qg === 'man' || qg === 'woman') body.gender = qg;
+      var qgoal = sessionStorage.getItem('loveconnect_goal');
+      if (qgoal === 'serious' || qgoal === 'friendship' || qgoal === 'casual') body.goal = qgoal;
+      api('/api/signup', { method: 'POST', body: body })
+        .then(function (r) {
+          sessionStorage.removeItem('lc_quick_gender');
+          var ageTo = sessionStorage.getItem('lc_quick_age_to');
+          sessionStorage.removeItem('lc_quick_age_to');
+          // The quick-start age range becomes the saved discovery age preference.
+          if (ageTo) {
+            var max = ageTo === '50+' ? 70 : parseInt(ageTo, 10);
+            if (max >= 18) api('/api/account/settings', { method: 'PUT', body: { settings: { ageRange: String(max) } } }).catch(function () {});
+          }
+          location.href = r.redirect || '/onboarding.html';
+        }, fail);
     } else if (f.id === 'loginForm') {
       stop(e);
       api('/api/login', { method: 'POST', body: { email: f.querySelector('input[type=email]').value, password: f.querySelector('input[type=password]').value } })
         .then(function (r) { location.href = r.redirect || '/onboarding.html'; }, fail);
-    } else if (f.id === 'accountSettingsForm') { stop(e); }
+    } else if (f.id === 'accountSettingsForm') {
+      stop(e);
+      // Display name and the two visibility switches are real account settings; save them.
+      var jobs = [];
+      var dn = $('settingsDisplayName');
+      if (dn && dn.value.trim() && dn.value.trim() !== me.name) {
+        jobs.push(api('/api/account/profile', { method: 'PUT', body: { name: dn.value.trim() } }).then(function () {
+          me.name = dn.value.trim();
+          sessionStorage.setItem('loveconnect_profile_name', me.name);
+          var label = $('navProfileName'); if (label) label.textContent = me.name;
+          var photo = $('navProfilePhoto'); if (photo && !photo.style.backgroundImage) photo.textContent = me.name.charAt(0).toUpperCase();
+        }));
+      }
+      var so = $('settingsShowOnline'), pv = $('settingsProfileVisible');
+      if (so || pv) {
+        var set = {};
+        if (so) set.privacy5 = !!so.checked;   // Show when I'm online
+        if (pv) set.privacy1 = !!pv.checked;   // Make my profile visible (discovery)
+        jobs.push(api('/api/account/settings', { method: 'PUT', body: { settings: set } }).then(function () {
+          me.settings = Object.assign({}, me.settings, set);
+        }));
+      }
+      // settingsEmailAlerts stays inactive on purpose: no email service is connected yet.
+      Promise.all(jobs).then(function () {
+        toast('Settings saved to your account.');
+        var modal = $('accountSettingsModal'); if (modal && window.bootstrap) bootstrap.Modal.getInstance(modal) && bootstrap.Modal.getInstance(modal).hide();
+      }, fail);
+    }
   }, true);
   on('click', '#logoutButton', function (e) {
     stop(e);
@@ -100,8 +150,8 @@
   function inGrid(el) { return el.closest('#discoverGrid'); }
   on('click', '.like-btn, .like-back-btn', function (e, b) {
     if (inGrid(b)) return;
+    var id = memberIdOf(b); if (!id) return; // sample cards keep their labelled demo behaviour
     stop(e);
-    var id = memberIdOf(b); if (!id) return;
     api('/api/members/' + id + '/like', { method: 'POST' }).then(function (r) {
       var big = b.closest('.member-profile-content');
       if (big) b.innerHTML = r.liked ? '<i class="bi bi-heart-fill me-1"></i>Liked' : '<i class="bi bi-heart me-1"></i>Like';
@@ -112,8 +162,8 @@
   });
   on('click', '.favorite-btn', function (e, b) {
     if (inGrid(b)) return;
+    var id = memberIdOf(b); if (!id) return; // sample cards keep their labelled demo behaviour
     stop(e);
-    var id = memberIdOf(b); if (!id) return;
     api('/api/members/' + id + '/favorite', { method: 'POST' }).then(function (r) {
       var big = b.closest('.member-profile-content');
       b.classList.toggle('active', r.favorite);
@@ -123,26 +173,42 @@
     }, fail);
   });
   on('click', '.block-btn', function (e) {
-    stop(e);
     var id = page === 'member' ? pageMemberId : (page === 'messages' ? (convo && convo.id) : qs.get('with'));
     if (!id) return;
+    stop(e);
     if (!window.confirm('Block this member? They will no longer be able to see or contact you.')) return;
     api('/api/members/' + id + '/block', { method: 'POST' }).then(function () { toast('Member blocked.'); setTimeout(function () { location.href = 'discover.html'; }, 500); }, fail);
   });
   on('click', '.report-btn', function (e) {
-    stop(e);
     var id = page === 'member' ? pageMemberId : (page === 'messages' ? (convo && convo.id) : qs.get('with'));
     if (!id) return;
+    stop(e);
     var reason = window.prompt('Tell us briefly what is wrong (optional):');
     if (reason === null) return;
     api('/api/members/' + id + '/report', { method: 'POST', body: { reason: reason } }).then(function () { toast('Thanks. Your report was sent to our team.'); }, fail);
   });
   on('click', '.unblock-btn, .unblock-local', function (e, b) {
-    stop(e);
     var id = memberIdOf(b); if (!id) return;
+    stop(e);
     api('/api/members/' + id + '/block', { method: 'DELETE' }).then(function () {
       var row = b.closest('.like-entry, .blocked-user-row'); if (row) row.remove(); toast('Member unblocked.');
     }, fail);
+  });
+
+  // Prefill the quick account-settings modal with real account state each time it opens.
+  document.addEventListener('show.bs.modal', function (e) {
+    if (e.target && e.target.id === 'accountSettingsModal') {
+      var dn = $('settingsDisplayName'); if (dn) dn.value = me.name || '';
+      var so = $('settingsShowOnline'); if (so) so.checked = (me.settings || {}).privacy5 !== false;
+      var pv = $('settingsProfileVisible'); if (pv) pv.checked = (me.settings || {}).privacy1 !== false;
+    }
+  }, true);
+
+  // Keep the account language in sync when the menu language changes.
+  on('click', '[data-language]', function (e, item) {
+    var code = item.dataset.langCode || 'en';
+    if (['en', 'ar', 'fr'].indexOf(code) < 0) return;
+    api('/api/account/settings', { method: 'PUT', body: { language: code } }).then(function () { me.language = code; }, function () {});
   });
 
   /* ---------- Notifications (menu, modal, page) ---------- */
@@ -184,19 +250,74 @@
   setInterval(function () { if (document.hidden) return; loadNotifications().catch(function () {}); }, 30000);
 
   /* ---------- Page-specific wiring ---------- */
+  // The preference switches at the bottom of notifications.html save to the account,
+  // matching their counterparts in Settings > Notifications.
+  function initNotificationPrefs() {
+    var rows = document.querySelectorAll('.notification-settings .setting-row input[type="checkbox"]');
+    if (!rows.length) return;
+    var S = me.settings || {};
+    var map = [
+      ['notify2', 'notify5'], // Likes and matches
+      ['notify1'],            // New messages
+      ['notifySafety']        // Safety and account alerts
+    ];
+    rows.forEach(function (input, i) {
+      var keys = map[i]; if (!keys) return;
+      input.checked = keys.every(function (k) { return S[k] !== false; });
+      input.addEventListener('change', function (e) {
+        e.stopImmediatePropagation();
+        var set = {}; keys.forEach(function (k) { set[k] = input.checked; });
+        api('/api/account/settings', { method: 'PUT', body: { settings: set } }).then(function () {
+          me.settings = Object.assign({}, me.settings, set);
+          toast('Preference saved.');
+          if (keys.indexOf('notifySafety') >= 0) loadNotifications().catch(function () {});
+        }, function (err) { input.checked = !input.checked; fail(err); });
+      }, true);
+    });
+  }
+
+  /* ---------- Real photo gallery (Discover cards open the member's own photos) ---------- */
+  var gallery = { photos: [], index: 0 };
+  function paintGallery(title) {
+    var img = $('galleryImage'); if (img && gallery.photos.length) { img.src = gallery.photos[gallery.index]; img.alt = (title || 'Member') + ' photo ' + (gallery.index + 1); }
+    var counter = $('galleryCounter'); if (counter) counter.textContent = gallery.photos.length ? (gallery.index + 1) + ' / ' + gallery.photos.length : '';
+    var prev = $('galleryPrev'), next = $('galleryNext');
+    [prev, next].forEach(function (b) { if (b) b.classList.toggle('d-none', gallery.photos.length < 2); });
+  }
+  window.LCSetGallery = function (photos, title) {
+    gallery.photos = (photos || []).filter(Boolean);
+    gallery.index = 0;
+    var t = $('photoGalleryTitle'); if (t) t.textContent = (title || 'Member') + ' · Photos';
+    paintGallery(title);
+  };
+  on('click', '#galleryPrev', function (e) {
+    if (!gallery.photos.length) return;
+    stop(e);
+    gallery.index = (gallery.index - 1 + gallery.photos.length) % gallery.photos.length;
+    paintGallery();
+  });
+  on('click', '#galleryNext', function (e) {
+    if (!gallery.photos.length) return;
+    stop(e);
+    gallery.index = (gallery.index + 1) % gallery.photos.length;
+    paintGallery();
+  });
+  document.addEventListener('hidden.bs.modal', function (e) {
+    if (e.target && e.target.id === 'photoGalleryModal') { gallery.photos = []; gallery.index = 0; }
+  }, true);
+
   function ready(fn) { if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', fn); else fn(); }
   ready(function () {
-    if (page === 'discover' || page === 'search') {
+    if (page === 'discover') {
       var lm = $('loadMoreProfiles');
       if (lm) lm.addEventListener('click', function (e) {
         e.stopImmediatePropagation();
         var next = document.querySelector('#discoverPagination li:last-child button');
         if (next && !next.disabled) next.click(); else toast("You've reached the end of the list.");
       }, true);
-      var info = document.querySelector('#searchFilters > .container > p.small.text-muted');
-      if (TEXT_FIXES && info) info.lastChild.textContent = 'Filters search real members.';
     }
     if (page === 'member') loadMember();
+    if (page === 'notifications') initNotificationPrefs();
     if (['likes', 'favorites', 'profile-views', 'blocked'].indexOf(page) >= 0) loadActivity();
     if (page === 'messages' || page === 'chat') initMessages();
     if (page === 'my-profile') initMyProfile();
@@ -306,24 +427,66 @@
     var st = $('chatPersonStatus'); if (st) st.textContent = m.online ? 'Online now' : 'Recently active';
     document.querySelectorAll('.conversation-item').forEach(function (b) { b.classList.toggle('active', b.dataset.memberId === String(m.id)); });
     var box = $('chatMessages'); if (box) delete box.dataset.key;
-    return api('/api/messages/' + m.id).then(function (r) { renderThread(r); loadConvos(true); }, fail);
+    return api('/api/messages/' + m.id).then(function (r) { renderThread(r); convo = r.member; updateConvoMenu(r.member); loadConvos(true); }, fail);
   }
+  function activeFolder() { var t = document.querySelector('[data-message-tab].active'); return t ? t.dataset.messageTab : 'inbox'; }
   function renderConvos() {
     var list = document.querySelector('.conversation-list'); if (!list) return;
     var head = list.querySelector('.conversation-heading');
     var unread = convos.reduce(function (n, c) { return n + c.unread; }, 0);
     var badge = head && head.querySelector('.badge'); if (badge) { badge.textContent = unread + ' new'; badge.classList.toggle('d-none', unread === 0); }
     list.querySelectorAll('.conversation-item').forEach(function (b) { b.remove(); });
+    var trashView = activeFolder() === 'trash';
     convos.forEach(function (c) {
       var m = c.member;
-      list.insertAdjacentHTML('beforeend', '<button class="conversation-item' + (convo && convo.id === m.id ? ' active' : '') + '" data-conversation="' + esc(m.name) + '" data-member-id="' + m.id + '" data-folder="' + (c.inbound ? 'inbox' : 'sent') + '" data-favorite="' + (c.favorite ? 'yes' : 'no') + '"><span class="mini-avatar"' + avatar(m) + '></span><span class="conversation-summary"><strong>' + esc(m.name) + '</strong><small>' + esc(c.last) + '</small></span><time>' + esc(fmtTime(c.at)) + '</time></button>');
+      list.insertAdjacentHTML('beforeend', '<button class="conversation-item' + (convo && convo.id === m.id ? ' active' : '') + '" data-conversation="' + esc(m.name) + '" data-member-id="' + m.id + '" data-folder="' + (trashView ? 'trash' : (c.inbound ? 'inbox' : 'sent')) + '" data-favorite="' + (c.favorite ? 'yes' : 'no') + '"><span class="mini-avatar"' + avatar(m) + '></span><span class="conversation-summary"><strong>' + esc(m.name) + '</strong><small>' + esc(c.last) + '</small></span><time>' + esc(fmtTime(c.at)) + '</time></button>');
     });
-    var activeTab = document.querySelector('[data-message-tab].active');
-    if (activeTab) { var f = activeTab.dataset.messageTab; list.querySelectorAll('.conversation-item').forEach(function (it) { it.classList.toggle('d-none', !(f === 'inbox' ? it.dataset.folder === 'inbox' : f === 'sent' ? it.dataset.folder === 'sent' : f === 'favorites' ? it.dataset.favorite === 'yes' : false)); }); }
+    var f = activeFolder();
+    list.querySelectorAll('.conversation-item').forEach(function (it) { it.classList.toggle('d-none', !(f === 'inbox' ? it.dataset.folder === 'inbox' : f === 'sent' ? it.dataset.folder === 'sent' : f === 'favorites' ? it.dataset.favorite === 'yes' : it.dataset.folder === 'trash')); });
   }
   function loadConvos(keepOpen) {
-    return api('/api/conversations').then(function (r) { convos = r.conversations; if (page === 'messages') renderConvos(); return r; });
+    return api('/api/conversations' + (activeFolder() === 'trash' ? '?trash=1' : '')).then(function (r) { convos = r.conversations; if (page === 'messages') renderConvos(); return r; });
   }
+  function updateConvoMenu(m) {
+    if (!m) return;
+    var like = document.querySelector('.convo-like-btn'); if (like) like.textContent = m.liked ? 'Like sent ✓' : 'Like';
+    var fav = document.querySelector('.convo-favorite-btn'); if (fav) fav.textContent = m.favorite ? 'In favorites ✓' : 'Add to favorites';
+    var tr = document.querySelector('.convo-trash-btn'); if (tr) tr.textContent = m.trashed ? 'Restore conversation' : 'Move to trash';
+  }
+  on('click', '.convo-like-btn', function (e) {
+    if (!convo) return;
+    stop(e);
+    api('/api/members/' + convo.id + '/like', { method: 'POST' }).then(function (r) {
+      convo.liked = r.liked; updateConvoMenu(convo);
+      toast(r.match ? "It's a match! You can message each other now." : (r.liked ? 'Like sent.' : 'Like removed.'));
+    }, fail);
+  });
+  on('click', '.convo-favorite-btn', function (e) {
+    if (!convo) return;
+    stop(e);
+    api('/api/members/' + convo.id + '/favorite', { method: 'POST' }).then(function (r) {
+      convo.favorite = r.favorite; updateConvoMenu(convo);
+      toast(r.favorite ? 'Added to your favorites.' : 'Removed from your favorites.');
+    }, fail);
+  });
+  on('click', '.convo-trash-btn', function (e) {
+    if (!convo) return;
+    stop(e);
+    var wasTrashed = !!convo.trashed;
+    api('/api/conversations/' + convo.id + '/trash', { method: wasTrashed ? 'DELETE' : 'POST' }).then(function () {
+      toast(wasTrashed ? 'Conversation restored.' : 'Conversation moved to trash.');
+      convo = null;
+      var nm = $('chatPersonName'); if (nm) nm.textContent = 'No conversation selected';
+      var st = $('chatPersonStatus'); if (st) st.textContent = '';
+      var box = $('chatMessages'); if (box) { box.innerHTML = ''; delete box.dataset.key; }
+      var av = $('chatAvatar'); if (av) { av.className = 'mini-avatar'; av.style.backgroundImage = ''; }
+      loadConvos();
+    }, fail);
+  });
+  on('click', '[data-message-tab]', function (e, b) {
+    var t = b.dataset.messageTab;
+    api('/api/conversations' + (t === 'trash' ? '?trash=1' : '')).then(function (r) { convos = r.conversations; if (page === 'messages') renderConvos(); }, function () {});
+  });
   function initMessages() {
     if (TEXT_FIXES) { var note = document.querySelector('.chat-demo-note'); if (note) note.remove(); }
     var want = qs.get('with');
@@ -413,8 +576,8 @@
     if (af) af.addEventListener('submit', function (e) {
       stop(e);
       var body = { email: $('settingEmail').value.trim() || undefined, phone: $('settingPhone').value.trim(), language: LANG[$('settingLanguage').value] || 'en' };
-      if ($('settingPassword').value) body.password = $('settingPassword').value;
-      api('/api/account/settings', { method: 'PUT', body: body }).then(function () { $('settingPassword').value = ''; toast('Account settings saved.'); }, fail);
+      if ($('settingPassword').value) { body.password = $('settingPassword').value; body.current_password = ($('settingCurrentPassword') && $('settingCurrentPassword').value) || ''; }
+      api('/api/account/settings', { method: 'PUT', body: body }).then(function () { $('settingPassword').value = ''; if ($('settingCurrentPassword')) $('settingCurrentPassword').value = ''; toast('Account settings saved.'); }, fail);
     }, true);
     on('click', '[data-local-save]', function (e, b) {
       stop(e);
