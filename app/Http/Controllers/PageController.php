@@ -44,7 +44,7 @@ class PageController extends Controller
             . 'var l=localStorage,uid=m?String(m.id):"";if(l.getItem("lc_uid")!==uid){Object.keys(l).filter(function(k){return /^lc_setting_|^loveconnect_profile/.test(k)}).forEach(function(k){l.removeItem(k)});l.setItem("lc_uid",uid);}'
             . '}catch(e){}})();</script>';
         $html = preg_replace('/<head[^>]*>/i', '$0' . $head, $html, 1);
-        $html = preg_replace('#</body>#i', '<script src="/js/backend.js"></script></body>', $html, 1);
+        $html = preg_replace('#</body>#i', '<script src="/js/i18n.js"></script><script src="/js/backend.js"></script></body>', $html, 1);
         return response($html)->header('Content-Type', 'text/html; charset=UTF-8')->header('Cache-Control', 'no-store');
     }
 }
