@@ -19,20 +19,24 @@ Route::prefix('api')->group(function () {
 
     Route::middleware(['auth', App\Http\Middleware\Seen::class])->group(function () {
         Route::post('logout', [AuthController::class, 'logout']);
-        Route::get('members', [MemberController::class, 'index']);
-        Route::get('members/{user}', [MemberController::class, 'show']);
-        Route::post('members/{user}/like', [MemberController::class, 'like']);
-        Route::post('members/{user}/favorite', [MemberController::class, 'favorite']);
-        Route::post('members/{user}/block', [MemberController::class, 'block']);
-        Route::delete('members/{user}/block', [MemberController::class, 'unblock']);
-        Route::post('members/{user}/report', [MemberController::class, 'report'])->middleware('throttle:20,1');
-        Route::get('activity/{kind}', [ActivityController::class, 'show']);
-        Route::get('conversations', [MessageController::class, 'conversations']);
-        Route::get('messages/{user}', [MessageController::class, 'thread']);
-        Route::post('messages/{user}', [MessageController::class, 'send'])->middleware('throttle:60,1');
-        Route::get('notifications', [NotificationController::class, 'index']);
-        Route::post('notifications/read-all', [NotificationController::class, 'readAll']);
-        Route::post('notifications/{id}/read', [NotificationController::class, 'read']);
+        Route::put('onboarding/{step}', [\App\Http\Controllers\OnboardingController::class, 'save'])->whereNumber('step');
+
+        Route::middleware(\App\Http\Middleware\EnsureProfileComplete::class)->group(function () {
+            Route::get('members', [MemberController::class, 'index']);
+            Route::get('members/{user}', [MemberController::class, 'show']);
+            Route::post('members/{user}/like', [MemberController::class, 'like']);
+            Route::post('members/{user}/favorite', [MemberController::class, 'favorite']);
+            Route::post('members/{user}/block', [MemberController::class, 'block']);
+            Route::delete('members/{user}/block', [MemberController::class, 'unblock']);
+            Route::post('members/{user}/report', [MemberController::class, 'report'])->middleware('throttle:20,1');
+            Route::get('activity/{kind}', [ActivityController::class, 'show']);
+            Route::get('conversations', [MessageController::class, 'conversations']);
+            Route::get('messages/{user}', [MessageController::class, 'thread']);
+            Route::post('messages/{user}', [MessageController::class, 'send'])->middleware('throttle:60,1');
+            Route::get('notifications', [NotificationController::class, 'index']);
+            Route::post('notifications/read-all', [NotificationController::class, 'readAll']);
+            Route::post('notifications/{id}/read', [NotificationController::class, 'read']);
+        });
         Route::put('account/profile', [AccountController::class, 'profile']);
         Route::put('account/settings', [AccountController::class, 'settings']);
         Route::post('account/photos', [AccountController::class, 'uploadPhotos']);

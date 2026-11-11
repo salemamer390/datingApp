@@ -12,7 +12,7 @@ use Illuminate\Http\Request;
  */
 class PageController extends Controller
 {
-    private const PROTECTED = ['discover', 'search', 'member', 'likes', 'messages', 'notifications', 'chat', 'settings', 'settings-profile', 'settings-photos', 'settings-privacy', 'settings-notifications', 'settings-preferences', 'settings-blocked', 'my-profile', 'view-profile', 'favorites', 'profile-views', 'blocked'];
+    private const PROTECTED = ['discover', 'search', 'member', 'likes', 'messages', 'notifications', 'chat', 'settings', 'settings-profile', 'settings-photos', 'settings-privacy', 'settings-notifications', 'settings-preferences', 'settings-blocked', 'my-profile', 'view-profile', 'favorites', 'profile-views', 'blocked', 'onboarding'];
 
     public function show(Request $request, string $page = 'index')
     {
@@ -23,6 +23,12 @@ class PageController extends Controller
         $user = $request->user();
         if (in_array($page, self::PROTECTED, true) && ! $user) {
             return redirect('/index.html?loginRequired=1');
+        }
+        if ($user && $page !== 'onboarding' && in_array($page, self::PROTECTED, true) && ! $user->hasCompletedOnboarding()) {
+            return redirect('/onboarding.html');
+        }
+        if ($user && $page === 'onboarding' && $user->hasCompletedOnboarding()) {
+            return redirect('/discover.html');
         }
         $html = file_get_contents($file);
         $boot = [

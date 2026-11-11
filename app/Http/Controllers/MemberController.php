@@ -31,7 +31,7 @@ class MemberController extends Controller
     {
         $me = $r->user();
         $q = User::query()->where('id', '!=', $me->id)->whereNotIn('id', Lc::hiddenIds($me->id))
-            ->whereNotNull('gender')->whereNotNull('age');
+            ->whereNotNull('gender')->whereNotNull('age')->whereNotNull('onboarding_completed_at');
         // Members who turned off "Show my profile in discovery" are excluded.
         $q->where(fn ($w) => $w->whereNull('settings')->orWhere(fn ($x) => $x->where('settings', 'not like', '%"privacy1":false%')->where('settings', 'not like', '%"privacy1": false%')));
 
@@ -64,6 +64,7 @@ class MemberController extends Controller
     public function show(Request $r, User $user)
     {
         $me = $r->user();
+        abort_if($user->id !== $me->id && ! $user->hasCompletedOnboarding(), 404);
         if (in_array($user->id, Lc::hiddenIds($me->id), true)) { abort(404); }
         if ($user->id !== $me->id) {
             $v = ProfileView::firstOrNew(['viewer_id' => $me->id, 'viewed_id' => $user->id]);

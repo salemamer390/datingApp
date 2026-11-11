@@ -88,6 +88,9 @@ class AccountController extends Controller
     public function showPhoto(Request $r, Photo $photo)
     {
         $me = $r->user()->id;
+        if ($photo->user_id !== $me) {
+            abort_unless($r->user()->hasCompletedOnboarding() && \App\Models\User::findOrFail($photo->user_id)->hasCompletedOnboarding(), 404);
+        }
         abort_unless($photo->user_id === $me || ! in_array($photo->user_id, \App\Support\Lc::hiddenIds($me), true), 404);
         abort_unless(Storage::disk('local')->exists($photo->path), 404);
         return Storage::disk('local')->response($photo->path, null, ['Cache-Control' => 'private, no-cache']);

@@ -20,7 +20,7 @@ class AccessControlTest extends TestCase
     {
         static $n = 0;
         $n++;
-        return User::create($o + ['name' => "M$n", 'email' => "m$n@example.com", 'password' => 'password123', 'gender' => 'woman', 'age' => 30]);
+        return User::unguarded(fn () => User::create($o + ['name' => "M$n", 'email' => "m$n@example.com", 'password' => 'password123', 'gender' => 'woman', 'age' => 30, 'onboarding_completed_at' => now()]));
     }
 
     public function test_guests_cannot_use_api_or_protected_pages(): void
