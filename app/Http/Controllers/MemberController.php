@@ -40,6 +40,23 @@ class MemberController extends Controller
         if ($tab === 'new') { $q->where('created_at', '>', now()->subDays(14)); }
         if (in_array($tab, ['serious', 'friendship'], true)) { $q->where('goal', $tab); }
 
+        if (! $r->boolean('filtered')) {
+            // Saved Preferences (Settings > Preferences) shape the default Discover/Search list.
+            // Distance is not applied: members share city/country text only, no coordinates, so
+            // a kilometre radius cannot be computed honestly.
+            $pref = $me->settings ?? [];
+            if (($pref['prefGender'] ?? 'Everyone') === 'Men') { $q->where('gender', 'man'); }
+            if (($pref['prefGender'] ?? 'Everyone') === 'Women') { $q->where('gender', 'woman'); }
+            if (! empty($pref['ageRange']) && is_numeric($pref['ageRange'])) {
+                $q->whereBetween('age', [18, max(18, min(100, (int) $pref['ageRange']))]);
+            }
+            if (! empty($pref['prefInterests']) && is_string($pref['prefInterests'])) {
+                $wanted = array_values(array_filter(array_map(fn ($x) => strtolower(trim($x)), explode(',', $pref['prefInterests']))));
+                if ($wanted) {
+                    $q->where(fn ($w) => collect($wanted)->each(fn ($i) => $w->orWhereRaw('lower(interests) like ?', ['%' . $i . '%'])));
+                }
+            }
+        }
         if ($r->boolean('filtered')) {
             $q->whereBetween('age', [(int) $r->query('min', 18), (int) $r->query('max', 100)]);
             if (($g = $r->query('gender', 'all')) !== 'all') { $q->where('gender', $g); }
