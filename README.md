@@ -26,7 +26,7 @@ Your original HTML/Bootstrap front end, served unchanged by Laravel and connecte
 - Laravel serves each page and adds only: a small bootstrap script (session state + CSRF) and `<script src="/js/backend.js">` at the end. No markup, class or style was edited.
 - `public/js/backend.js` (new) connects forms and buttons to the API and fills the same markup with real rows.
 - `public/js/demo-members.js` (changed): the 3,000 browser-generated profiles are replaced by `GET /api/members`. Card markup, pagination and chat dock are the same.
-- Original sample wording is left exactly as is (for example the "Verified profile" tag and the "Demo only" notes). Set `window.LC_TEXT_FIXES = true` before backend.js loads to switch on five small wording fixes (see TEXT_FIXES in backend.js).
+- The default static Sophia demo profile keeps its original portrait and wording. A specific member profile uses that member's data and does not show a verified badge unless actually verified. Original photo URLs and demo member mappings are preserved. Other original sample notes remain; optional wording updates are off by default.
 
 ## Run locally
 ```
@@ -34,7 +34,6 @@ composer install
 cp .env.example .env && php artisan key:generate
 touch database/database.sqlite
 php artisan migrate
-php artisan storage:link
 php artisan serve
 ```
 Open http://127.0.0.1:8000. Optional, development only: `php artisan db:seed --class=DemoMembersSeeder` adds 3,000 fictional members (refuses to run in production). Do not launch with fake members.
@@ -42,7 +41,7 @@ Open http://127.0.0.1:8000. Optional, development only: `php artisan db:seed --c
 ## Before going live
 - Use MySQL/Postgres, `APP_ENV=production`, `APP_DEBUG=false`, HTTPS, a real `APP_KEY`
 - Add email verification and password reset, a moderation screen for `reports`, and age/consent and privacy-policy text that fits your target countries
-- Tests: `php artisan test` (12 access-control tests)
+- Tests: `php artisan test` (13 access-control tests)
 
 ## Messaging rule
 A member with "Allow messages from everyone" switched off (the default) can only be messaged by people they have liked or already written to. Blocked members can neither message nor see each other.
