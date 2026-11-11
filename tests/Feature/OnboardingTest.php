@@ -131,6 +131,14 @@ class OnboardingTest extends TestCase
         $this->assertFalse($ids->contains($pending->id));
     }
 
+    public function test_development_demo_seed_remains_visible_after_the_new_gate(): void
+    {
+        $this->seed(\Database\Seeders\DemoMembersSeeder::class);
+        $this->assertSame(3000, User::where('is_demo', true)->whereNotNull('onboarding_completed_at')->count());
+        $this->complete();
+        $this->getJson('/api/members')->assertOk()->assertJsonPath('total', 3000);
+    }
+
     public function test_onboarding_requires_authentication(): void
     {
         $this->get('/onboarding.html')->assertRedirect('/index.html?loginRequired=1');
