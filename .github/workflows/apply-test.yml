@@ -6,7 +6,7 @@ on:
 permissions:
   contents: write
 jobs:
-  go:
+  l13:
     runs-on: ubuntu-latest
     services:
       mysql:
@@ -25,6 +25,7 @@ jobs:
           extensions: pdo_mysql, pdo_sqlite, mbstring, gd
       - run: echo 'H4sIAAAAAAACA7VXbXfaxhL+7l+xTXoKFBD4NY591BMMckODwUU4vfkEi7TAxnqrtMLmpv7v95mVhIFg396ec8mJJe3LzOzM88zMunI2Y/X6XCrGG4YIloYMZjKQajWLhTDEI/cjT7Dpy3MHgXhgM4lFfugKdthsnp2cHMjAFY+smf0M4+RcNMXZ+UG9XmcNVywbQep5B9Vq9VXJHz6werPWZNXD2tkp+/DhoNq6vR33WzeW2QuXoh0GgXBUNmr1P5tRHLqpo2QYZGOfrC9m9taxru5+NWfcS0Q2cDfsmQulootGwwsd7i3CRF2cw9aDaragN2i3epYpclHXrV7vqtX+9P34J2v4PDi+swsBN61uf2T1W/22Ne4Mu5+toUleOqi+ZbvT9mgwtEyXKz7lZCCtuf14O273umPbGmLr+I/BEIps84Rmr9rDL7ej8XBw1+/Y5uERjfUGv47bH1v9vtUzE8Wd+2zIHsFoM5HBnFTTSMe6HVrt1qg76NvrHVk4aLpnfca3K6bpnMR2rsbtAZa0ab3pr5I/PT34cWCPTHw8Pj5ux84Jfb3gdjAcmcfHzTP91WmNWlct2zJXYRqPi5OOA+4LPX+HY+q4bs+niYgzaS3bhgs6JtlkW7YNa7a9Wgz2utfWqAtJh0fN51Grr11WIKAYvm2NPpqNDYkDCkvuDfh5OGh12i17tOkDL4Rjrrs9y/5ij6ybcadrfzI1hg6qv99Zd9bm4mQVOCSp3Wp//D7Ob1k2joBcd/+lz3Zj3eixTubhw6N3RhP/DmluaEEXgcLqj8xoEcXClUkxvLs8G137LTtSPkihOTt+914rbHV7BMYePKmPpgdsmAAfZrv0yK58PaglHZ0enebf6zBubNwxQY9dDwc341anM4TfzTcL4Xnhh5z0BKA3m8u0vDc/fiuo//RGM+wPe9xqt7GfWD7uEjJozLbaQ2u0MZWPd6zr1l0PnLF+pbikSV3wRNUPs9mru/Yna5QvxSE0MBCuLz0L0OncDsDVAjsH1c/dkTVeZ6Jt09zNfDq0Wp0by/BdZLn1e54az99PD11+bhju2WlzevauSJyUITd25jny+Zty4nntHavSH3y8fcv+WHDFZMJiwT0WhA8HrM5uF6EKWRp5IXdZOY0Yvt7X2Ndo3oiCeeNBTKMaO2U3V0xwZ1GpYbOPlFpjPpcBi2g3ienIxMFwzHjgMlvw2FlcMJASQ/VEIt2DfErEiZ6P+FwGnNIvKx+dsAjbMCQqJKgn70XCyg9SLZifqpR7dZ8rZ8FcoYRO2bBhxpdhLJVIagypXNeUpRQP+JyCYPdIYmRnFMYKr/AUuxFJAg3JRXZ2JwxgWKJNSNhUqAchAuYLf0omlh3ykwtBDBYWJ6uthWhja0yvotdLFoWelzCBVSv4KqkcVP/vKmOBLJosRKH2uMkS9rAgV6gF/vMpRXopEznFEHk9lvMFwDZDGBiyJ6KDQQ4TtArt/H6o5Ew6mZEXzKNYUKThf/2SW/NaAHTg0gBnBpi5O890+zy+r3PPq9M4abKFothACXecMA0UKwsgyqsRpAIc1ePBPNWHjniSPISxWyFdcsmdlRYZbNjKEqjNbESym4lYBI5INC6FB9w8K+HJfcJmYfwsdZuJCEHS6Pavu/3u6Mv10LLqI8seZcx8ce5vdTaO+/78/HB/Z/Oy5I3O5vBcdzZvme3DkwzOVwSWbl5Ur1FUWRleQUw9ngagTCJUGlUoE40WAANcE3GAhhZIH9FzmYol9wzWJexhgnZn/N4SW0qyDcApn4apYqcwqdlkCxoi9rp8VcNmZtsf9dOJw0C//JmKVDD4+R4oRwApcDuSAUc/oYNwN/UU8UQJRGrBYQTZMyWeYHQmYx8WU+xQGIEdlhAADdZeCNAGoJcxc9I4pt2Z0KnAasFS6mqYVIZumPI0CCoF81yeIu9of05T6bnE3jat2ccxAVPchMkgUQTxcMZOa7DeW71IPmDSS+mEDjyxwGGIfDFCEweUbPMNBigRuGTompIsURKBfrZC+vCA5Ep4K4OM3KIrQ2gZKg+8Tw7B0V61SguYvNhST+A1aLxZ2b/3vo8kK0/2djATzdGit9Zs0HpGUO+KRM6BCunrhEZIcAG1rIQwtNnZCQi4OjJFtGwlIih0kRUIJdT3AQ5+lCpKkIocmlUvAS5XDw02odkQtUcHiahSrwdhHZTDSxgpIPnfos5TFepd8eSgegQUhdHqVX/ASD09qRHVPQjXXtUeYnQrgJvQpdbIcXFe5rIUw2Zx6OvFW1yNeCCQ70BSNslvGpP8QHEasAkaN3hEyYQH7F6sLuYiEDGCP4Fnjg12l5VsjUwAGMApy8DxUo2hyRJgCuPGpEJ2c6Dcc8ldOjtrXEyidOpJpzEpGKfbAvhel4tEm4viz+IwxMlAEhwLgugTfljg4oAMm8AtGVEedDXQTioEw8wT+BVS1RqAnq6Hu6fz5ZwOhvCAjQ58rbtkGMnnnGKod1NeUoW/5UyPkduBeS98SIp5J7vrESOQ12ag/Tq11Zh4pJ5Ab03AEp9noeGZwlx2ecu2bN2Fm/rRhNyAuZtVy/VlUNFBlr4WCTW6HSomcfhTg93we8EmiQpjYB6upg2TKVyYqJhHDQf+pmFyHs84eVC1qAwyRHVN7ecSiEMSXHSlzChEFIuzGkjs0QkTOUyxlUC+2ypteVy+Jo0pbn3Ah/EVKXLvcF67kD+b785dwzjmzlFzdrrdeu7dmNWzvVNUyg7Pj6glzR6oZox+PJLlUgN/G5s1PWlQr0BNQ6nGviEnqkXoXrDSLe4XJfZUMYgp5RnyRdZIVrAoz6pEjK3cWK5cvrBDhejuy6WW5201FInuWJBDuaaFa5RIAvU90qtcktlP2WOPKsOhfmlbD62uM+J6F2SLl9zbsePvyyEzjqmlgMjqayLBEWRNJ/VBbmMhXVcAspmHLv+hPkZHbvwMSBU/dgtk15NIOCQK+SWm9LMx/3OD9qyFkjNX5VnwnYF6wlaUBkzTZCUyEKJKFbZewl3XQl5TPYnai1xYLuEa3s6yV08XACAFoi+ZwAUMbzrsGnfHp6e1Q3RR+nm8Rh79lhzZetlkJvuxXKIGu7XEvTumgJOBmCJb8TAcDzTsI8djbQkcl3WeLb3U04lagcIE+HmMZtPtUqGjpSWyIteWvzzt9ba2JfCfTblFrQ0DUlmYE/gVrDCUeFT5yUlDe+NygQoKs6RHCYU0Z8hj+o4ykj5qk/kyaAhRiHCDjdAN1Sm9Ujh1V3RRNCIbzdD/2vlIaudQnsXGzYRSvJHp3UCJ1kRNmLYqd95riC7WEG7IHaEmPe2gm1dY2cgyxTWmUWJVfS8LDenm2QHdIxLqaEFwrLF9HGZEiNM1/yik1df8u3GWLeKy14CtvSM9tApZN1TasUUf7Ic9vtjw22WRo5728ja/tlXJWH0V22HtC7WDerZ6fm3dLSA7c3kVOYFtM5cbxns+PWq6s5eqyO7u3VKyO6/ryemZrif68czqfbGu+ohy7VteR7IyUpuG7uriN3vQB3spc8nZqvxNDyJ0qXiqFFWjXDF/IWhlyCj7Nd29VQoaizg2f/kGLKEficMHcx0ZR7c/lifoq1xy5RJMxornZGJqpten6ZTogNvVPKS8pxdt0NzUBlVL2RUPd3dVKV3KGWn+6Sf8gUfCoFK8lHOzv8Kq/yoIRbVa/mrkrvrrrxKkhEiA1RJUrDMVeYA4oA9u4DoQr2xcrh00N+WS4Tl1fYzC36WKwaMIZGojN7hl2FC5zOG4rp0ZWXc8mnMsoUpgKOKTuckmbQWOzcGFpSCgJ8ZcqDIFt4LCofdV9snVNcHxBI/XwjaUwLraJqn/kf4fCv2vqNFmQMB35N1n81NtXXk1rEkpZGl+a41rfv8HlqdcCp8ZAAA=' | base64 -d | gunzip | git apply --index
       - run: composer install --no-interaction --prefer-dist
+      - run: cp .env.example .env && php artisan key:generate
       - name: tests sqlite
         run: php artisan test
       - name: tests mysql
@@ -35,3 +36,32 @@ jobs:
           git config user.email "noreply@users.noreply.github.com"
           git commit -m "Prepare limited InfinityFree test build: 30s visible-tab chat refresh, MySQL env example, notes"
           git push origin HEAD:main
+  l12:
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: lc
+        ports: ['3306:3306']
+        options: >-
+          --health-cmd="mysqladmin ping -proot" --health-interval=5s --health-timeout=5s --health-retries=20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: pdo_mysql, pdo_sqlite, mbstring, gd
+      - run: |
+          sed -i 's/"php": "^8.3"/"php": "^8.2"/' composer.json
+          composer remove --dev laravel/pao laravel/pail --no-update || true
+          composer require laravel/framework:^12.0 laravel/tinker:^2.10 --no-update
+          composer require --dev phpunit/phpunit:^11.5 --no-update
+          composer update --no-interaction --prefer-dist
+          composer show laravel/framework | head -3
+      - run: cp .env.example .env && php artisan key:generate
+      - name: tests sqlite
+        run: php artisan test
+      - name: tests mysql
+        run: DB_CONNECTION=mysql DB_HOST=127.0.0.1 DB_PORT=3306 DB_DATABASE=lc DB_USERNAME=root DB_PASSWORD=root php artisan test
