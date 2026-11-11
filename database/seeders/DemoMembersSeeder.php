@@ -58,6 +58,7 @@ class DemoMembersSeeder extends Seeder
                     'photo_url' => 'https://randomuser.me/api/portraits/' . ($woman ? 'women' : 'men') . '/' . (($i % 99) + 1) . '.jpg',
                     'bio' => 'Fictional demo profile for development.',
                     'is_demo' => true,
+                    'onboarding_completed_at' => now(),
                     'settings' => json_encode(['privacy4' => true]), // demo members accept messages from everyone
                     'created_at' => $isNew ? now()->subDays($id % 10) : now()->subDays(30 + $id % 300),
                     'updated_at' => now(),
