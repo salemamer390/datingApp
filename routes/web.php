@@ -31,6 +31,8 @@ Route::prefix('api')->group(function () {
             Route::post('members/{user}/report', [MemberController::class, 'report'])->middleware('throttle:20,1');
             Route::get('activity/{kind}', [ActivityController::class, 'show']);
             Route::get('conversations', [MessageController::class, 'conversations']);
+            Route::post('conversations/{user}/trash', [MessageController::class, 'trash']);
+            Route::delete('conversations/{user}/trash', [MessageController::class, 'restore']);
             Route::get('messages/{user}', [MessageController::class, 'thread']);
             Route::post('messages/{user}', [MessageController::class, 'send'])->middleware('throttle:60,1');
             Route::get('notifications', [NotificationController::class, 'index']);
