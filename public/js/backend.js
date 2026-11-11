@@ -182,7 +182,7 @@
     api('/api/notifications/read-all', { method: 'POST' }).then(function () { return loadNotifications(); }).then(function () { toast('All notifications marked as read.'); }, fail);
   });
   loadNotifications().catch(function () {});
-  setInterval(function () { loadNotifications().catch(function () {}); }, 30000);
+  setInterval(function () { if (document.hidden) return; loadNotifications().catch(function () {}); }, 30000);
 
   /* ---------- Page-specific wiring ---------- */
   function ready(fn) { if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', fn); else fn(); }
@@ -355,10 +355,13 @@
         var av0 = $('chatAvatar'); if (av0) { av0.className = 'mini-avatar'; av0.style.backgroundImage = ''; }
       }
     }).catch(function () { var nm = $('chatPersonName'); if (nm) nm.textContent = 'Conversation unavailable'; });
-    pollTimer = setInterval(function () {
+    // Test-hosting build: refresh every 30 s, only while the tab is visible, plus once when it becomes visible again.
+    function refreshChat() {
       if (document.hidden) return;
       loadConvos(); if (convo) api('/api/messages/' + convo.id).then(renderThread, function () {});
-    }, 5000);
+    }
+    pollTimer = setInterval(refreshChat, 30000);
+    document.addEventListener('visibilitychange', function () { if (!document.hidden) refreshChat(); });
   }
 
   /* ---------- Profile + settings ---------- */

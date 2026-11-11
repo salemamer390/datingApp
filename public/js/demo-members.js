@@ -156,7 +156,7 @@
       api('/api/messages/'+m.id,{method:'POST',body:JSON.stringify({body:value})}).then(()=>loadThread(m,panel)).catch(err=>{const row=document.createElement('div');row.className='chat-bubble outgoing';row.textContent=value+' (not sent)';if(err&&err.json)err.json().then(j=>{row.textContent=value+' (not sent: '+(j.message||'error')+')';}).catch(()=>{});panel.querySelector('.lc-chat-messages').appendChild(row);});
     });
     loadThread(m,panel);
-    state.timer=setInterval(()=>{if(activeChats.get(m.id)===state)loadThread(m,panel);else clearInterval(state.timer);},5000);
+    state.timer=setInterval(()=>{if(activeChats.get(m.id)!==state)clearInterval(state.timer);else if(!document.hidden)loadThread(m,panel);},30000);
     activateChat(m.id);
   }
 
