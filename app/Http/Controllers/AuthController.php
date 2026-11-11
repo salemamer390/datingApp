@@ -11,6 +11,7 @@ class AuthController extends Controller
 {
     public function signup(Request $r)
     {
+        $r->merge(['email' => strtolower(trim((string) $r->input('email')))]);
         $d = $r->validate([
             'name' => 'required|string|max:60',
             'email' => 'required|email|max:190|unique:users,email',
@@ -26,7 +27,7 @@ class AuthController extends Controller
             'body' => 'Never share passwords or financial information with other members.']);
         Auth::login($user);
         $r->session()->regenerate();
-        return ['ok' => true];
+        return ['ok' => true, 'redirect' => '/onboarding.html'];
     }
 
     public function login(Request $r)
@@ -37,7 +38,7 @@ class AuthController extends Controller
         }
         $r->session()->regenerate();
         $r->user()->forceFill(['last_seen_at' => now()])->save();
-        return ['ok' => true];
+        return ['ok' => true, 'redirect' => $r->user()->hasCompletedOnboarding() ? '/discover.html' : '/onboarding.html'];
     }
 
     public function logout(Request $r)
