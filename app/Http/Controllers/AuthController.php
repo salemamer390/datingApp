@@ -11,7 +11,9 @@ class AuthController extends Controller
 {
     public function signup(Request $r)
     {
-        $r->merge(['email' => strtolower(trim((string) $r->input('email')))]);
+        if (is_string($r->input('email'))) {
+            $r->merge(['email' => strtolower(trim($r->input('email')))]);
+        }
         $d = $r->validate([
             'name' => 'required|string|max:60',
             'email' => 'required|email|max:190|unique:users,email',
