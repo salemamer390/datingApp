@@ -1,6 +1,19 @@
 # New-member profile setup
 
-After updating the code, run `php artisan migrate --force` on the target database (back it up first). No Composer dependency changes are needed. This update does not deploy the site or configure email.
+## Database update
+
+With terminal access, after updating the code, run `php artisan migrate --force` on the target database (back it up first). No Composer dependency changes are needed. This update does not deploy the site or configure email.
+
+### InfinityFree / no SSH or Artisan
+
+1. Back up the existing database and open phpMyAdmin for the correct LoveConnect database.
+2. Run `SHOW COLUMNS FROM users LIKE 'onboarding_completed_at';`. If a row exists, stop: the column is already installed. Do not import the SQL again.
+3. If no row exists, import `database/onboarding_mysql.sql`. This adds one nullable column and marks existing sufficiently filled profiles complete, matching the Laravel migration.
+4. Check the column exists, then test a new signup on the installed site. Do not claim the host is ready until this has been done.
+
+Use one database-update route, not both. A manual SQL import does not record an Artisan migration as run; reconcile the migration history if moving to Artisan later. Never put a public database-update script on the website. The source files alone do not update an existing hosted database. This task did not access or deploy any host.
+
+## Flow
 
 Signup keeps the member signed in and opens `onboarding.html`. Four short steps save answers to the database:
 
