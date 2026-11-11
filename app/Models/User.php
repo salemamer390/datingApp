@@ -6,13 +6,18 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 
 class User extends Authenticatable
 {
-    protected $guarded = ['id', 'is_demo'];
+    protected $guarded = ['id', 'is_demo', 'onboarding_completed_at'];
 
     protected $hidden = ['password', 'remember_token', 'email', 'phone', 'settings'];
 
     protected function casts(): array
     {
-        return ['password' => 'hashed', 'settings' => 'array', 'last_seen_at' => 'datetime', 'is_demo' => 'boolean'];
+        return ['password' => 'hashed', 'settings' => 'array', 'last_seen_at' => 'datetime', 'is_demo' => 'boolean', 'onboarding_completed_at' => 'datetime'];
+    }
+
+    public function hasCompletedOnboarding(): bool
+    {
+        return $this->onboarding_completed_at !== null;
     }
 
     public function photos()
