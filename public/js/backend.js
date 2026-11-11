@@ -368,6 +368,14 @@
   function goalKey(label) { for (var k in GOAL) if (GOAL[k] === label) return k; return 'serious'; }
   function initMyProfile() {
     var f = $('myProfileForm'); if (!f) return;
+    var edit = $('editProfileToggle');
+    if (edit) edit.addEventListener('click', function (e) {
+      stop(e);
+      f.querySelectorAll('.profile-editable').forEach(function (field) { field.disabled = false; });
+      if ($('ownPhotoFiles')) $('ownPhotoFiles').disabled = false;
+      if ($('saveProfileButton')) $('saveProfileButton').hidden = false;
+      if ($('cancelProfileEdit')) $('cancelProfileEdit').hidden = false;
+    }, true);
     f.addEventListener('submit', function (e) {
       stop(e);
       var g = function (k) { return (f.elements[k] && f.elements[k].value || '').trim(); };
@@ -447,16 +455,25 @@
     var f = $('settingsProfileForm'); if (!f) return;
     var extra = (me.settings && me.settings.profileExtra) || {}, p = me.profile, MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
     function el(n) { return [].slice.call(f.elements).filter(function (x) { return x.name === n; }); }
+    // Blank unanswered choices instead of saving the template's sample answers as facts.
+    f.querySelectorAll('select').forEach(function (select) {
+      if (select.name === 'Birth year') {
+        select.innerHTML = '';
+        for (var year = new Date().getFullYear() - 18; year >= 1900; year--) {
+          var option = document.createElement('option'); option.value = String(year); option.textContent = year; select.appendChild(option);
+        }
+      }
+      var blank = document.createElement('option'); blank.value = ''; blank.textContent = 'Not shared'; select.prepend(blank); select.value = '';
+    });
     // Replace the sample answers with this member's own.
     f.querySelectorAll('input.form-control, textarea').forEach(function (x) { x.value = ''; });
     el('First Name')[0].value = me.name;
-    el("I'm a")[0].value = me.gender === 'woman' ? 'Female' : 'Male';
+    el("I'm a")[0].value = me.gender === 'woman' ? 'Female' : me.gender === 'man' ? 'Male' : '';
     function setSel(name, v) { var s = el(name)[0]; if (!s || !v) return; if (![].some.call(s.options, function (o) { return o.text === v; })) s.insertAdjacentHTML('beforeend', '<option>' + esc(v) + '</option>'); s.value = v; }
     setSel('Country', p.country); el('City')[0].value = p.city || ''; el('Region')[0].value = (extra.Region || '');
     el('A little about yourself')[0].value = p.bio || '';
     if (extra['Birth month']) el('Birth month')[0].value = extra['Birth month'];
     if (extra['Birth year']) el('Birth year')[0].value = extra['Birth year'];
-    else if (p.age) el('Birth year')[0].value = String(new Date().getFullYear() - Number(p.age));
     Object.keys(extra).forEach(function (n) {
       if (CORE.indexOf(n) >= 0) return;
       var els = el(n), v = extra[n];
@@ -469,12 +486,12 @@
         if (!x.name || CORE.indexOf(x.name) >= 0 && x.name !== 'Region' && x.name !== 'Birth month' && x.name !== 'Birth year') return;
         if (x.type === 'checkbox') { (ex[x.name] = ex[x.name] || []); if (x.checked) ex[x.name].push(x.value || (x.nextSibling && x.nextSibling.textContent.trim())); }
         else if (x.type === 'radio') { if (x.checked) ex[x.name] = x.value; }
-        else ex[x.name] = x.value;
+        else ex[x.name] = x.value === 'Please Select...' ? '' : x.value;
       });
       var year = Number(el('Birth year')[0].value), mon = MONTHS.indexOf(el('Birth month')[0].value), now = new Date();
-      var age = year ? now.getFullYear() - year - (mon > now.getMonth() ? 1 : 0) : null;
+      var age = year && mon >= 0 ? now.getFullYear() - year - (mon > now.getMonth() ? 1 : 0) : (p.age || null);
       if (age !== null && age < 18) { toast('You must be at least 18 years old.'); return; }
-      var body = { name: el('First Name')[0].value.trim(), gender: el("I'm a")[0].value === 'Female' ? 'woman' : 'man', age: age, city: el('City')[0].value.trim(), country: el('Country')[0].value, region: el('Region')[0].value.trim(), bio: el('A little about yourself')[0].value.trim() };
+      var body = { name: el('First Name')[0].value.trim(), gender: el("I'm a")[0].value === 'Female' ? 'woman' : el("I'm a")[0].value === 'Male' ? 'man' : undefined, age: age, city: el('City')[0].value.trim(), country: el('Country')[0].value, region: el('Region')[0].value.trim(), bio: el('A little about yourself')[0].value.trim() };
       saveProfile(body).then(function () { return api('/api/account/settings', { method: 'PUT', body: { settings: { profileExtra: ex } } }); })
         .then(function () { toast('Profile saved.'); }, fail);
     }, true);
