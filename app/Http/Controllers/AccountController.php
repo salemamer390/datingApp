@@ -11,7 +11,7 @@ use Illuminate\Validation\Rule;
 
 class AccountController extends Controller
 {
-    private const SETTING_KEYS = ['privacy1', 'privacy2', 'privacy3', 'privacy4', 'privacy5', 'notify1', 'notify2', 'notify3', 'notify4', 'notify5', 'notify6', 'lookingFor', 'prefGender', 'ageRange', 'distanceRange', 'prefInterests', 'profileExtra'];
+    private const SETTING_KEYS = ['privacy1', 'privacy2', 'privacy3', 'privacy4', 'privacy5', 'notify1', 'notify2', 'notify3', 'notify4', 'notify5', 'notify6', 'lookingFor', 'prefGender', 'ageRange', 'distanceRange', 'prefInterests', 'profileExtra', 'notifySafety'];
 
     public function profile(Request $r)
     {
@@ -43,9 +43,14 @@ class AccountController extends Controller
             'phone' => 'nullable|string|max:30',
             'language' => 'nullable|in:en,ar,fr',
             'password' => 'nullable|string|min:8|max:100',
+            'current_password' => 'nullable|string|max:100',
             'settings' => 'nullable|array',
         ]);
         $u = $r->user();
+        if (! empty($in['password'])) {
+            abort_unless(! empty($in['current_password']) && Hash::check($in['current_password'], $u->password),
+                422, 'Your current password is incorrect.');
+        }
         if (! empty($in['email'])) { $u->email = strtolower($in['email']); }
         if (array_key_exists('phone', $in)) { $u->phone = $in['phone'] ?: null; }
         if (! empty($in['language'])) { $u->language = $in['language']; }
