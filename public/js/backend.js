@@ -23,7 +23,7 @@
     return fetch(url, { method: opt.method || 'GET', headers: headers, body: body, credentials: 'same-origin' }).then(function (r) {
       if (r.status === 401 && me) { location.href = 'index.html?loginRequired=1'; return Promise.reject(r); }
       return r.json().catch(function () { return {}; }).then(function (j) {
-        if (!r.ok) { var m = j && (j.message || (j.errors && Object.values(j.errors)[0][0])); return Promise.reject({ status: r.status, message: m || 'Something went wrong. Please try again.' }); }
+        if (!r.ok) { if (j.redirect === '/onboarding.html') { location.href = j.redirect; } var m = j && (j.message || (j.errors && Object.values(j.errors)[0][0])); return Promise.reject({ status: r.status, message: m || 'Something went wrong. Please try again.' }); }
         return j;
       });
     });
@@ -77,20 +77,19 @@
       var name = ($('signupName') && f.contains($('signupName')) ? $('signupName').value : ins[0].value).trim();
       var email = f.querySelector('input[type=email]').value;
       var pw = f.querySelector('input[type=password]').value;
-      api('/api/signup', { method: 'POST', body: { name: name, email: email, password: pw,
-        gender: sessionStorage.getItem('lc_quick_gender') || undefined, goal: sessionStorage.getItem('loveconnect_goal') || undefined } })
-        .then(function () { toast('Welcome to LoveConnect!'); setTimeout(function () { location.href = 'discover.html'; }, 300); }, fail);
+      api('/api/signup', { method: 'POST', body: { name: name, email: email, password: pw } })
+        .then(function (r) { location.href = r.redirect || '/onboarding.html'; }, fail);
     } else if (f.id === 'loginForm') {
       stop(e);
       api('/api/login', { method: 'POST', body: { email: f.querySelector('input[type=email]').value, password: f.querySelector('input[type=password]').value } })
-        .then(function () { location.href = 'discover.html'; }, fail);
+        .then(function (r) { location.href = r.redirect || '/onboarding.html'; }, fail);
     } else if (f.id === 'accountSettingsForm') { stop(e); }
   }, true);
   on('click', '#logoutButton', function (e) {
     stop(e);
     api('/api/logout', { method: 'POST' }).then(function () { sessionStorage.clear(); location.href = 'index.html'; }, function () { location.href = 'index.html'; });
   });
-  if (!me) return;
+  if (!me || page === 'onboarding') return;
 
   /* ---------- Likes, favorites, blocks, reports (everywhere except the Discover grid, which has its own handlers) ---------- */
   var pageMemberId = qs.get('id');
