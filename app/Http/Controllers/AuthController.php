@@ -38,6 +38,12 @@ class AuthController extends Controller
         if (! Auth::attempt(['email' => strtolower($d['email']), 'password' => $d['password']])) {
             return response()->json(['message' => 'Email or password is incorrect.'], 422);
         }
+        if ($r->user()->isSuspended()) {
+            Auth::logout();
+            $r->session()->invalidate();
+            $r->session()->regenerateToken();
+            return response()->json(['message' => 'This account is suspended. Contact support if you think this is a mistake.'], 403);
+        }
         $r->session()->regenerate();
         $r->user()->forceFill(['last_seen_at' => now()])->save();
         return ['ok' => true, 'redirect' => $r->user()->hasCompletedOnboarding() ? '/discover.html' : '/onboarding.html'];
