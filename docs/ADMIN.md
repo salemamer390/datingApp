@@ -17,8 +17,28 @@ database data; there is no sample content.
   reactivated. Admin accounts cannot be suspended, and an admin cannot suspend themselves.
   Every suspension records which admin applied it (`suspended_by`) and when (`suspended_at`),
   and every reviewed report records the reviewer and time.
+- **Announcements** - write a title and message, preview exactly what members will see, then
+  confirm the send. Every real member gets it as an in-app notification in the existing feed;
+  demo accounts and members who switched off "Website updates" in their notification settings
+  are skipped. Sent announcements are listed with their recipient count, sender and time.
+- **Site controls** - open or close new member registration. When closed, the signup form
+  refuses new accounts with a friendly message; existing members are unaffected. The setting
+  lives in the `site_settings` key-value table, ready for future controls without schema changes.
+- **System** - read-only health of the deployment: PHP and Laravel versions, database
+  connectivity and driver, a `debug ON` warning, registration status, the mailer state
+  (transactional mail is not configured yet: no email verification or password reset emails),
+  and setup checks (admin/report/site tables present, storage symlink for photo uploads).
+
+The Overview "Site-wide activity" counters are aggregate usage across all members.
+Conversation contents are never shown anywhere in the dashboard.
 
 Member accounts are never deleted from this screen on purpose.
+
+## Translation widget
+
+The site-wide Google Translate widget does not load on `admin.html` (the page carries
+`data-no-translate`): admin data such as member emails and reports must not leave the browser
+for Google, and the floating pill would overlap admin controls. Member pages are unchanged.
 
 ## Database
 
