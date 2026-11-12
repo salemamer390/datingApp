@@ -12,7 +12,7 @@ Your original HTML/Bootstrap front end, served unchanged by Laravel and connecte
 - Notifications: likes, matches, messages, favorites, profile views, with unread badge and mark-all-read
 - Settings: account (email, phone, language, password), privacy and notification switches, preferences
 - Delete account (asks for password)
-- Admin dashboard (`/admin.html`, admins only): live site stats, report review with statuses and notes, member search and reversible account suspension - see `docs/ADMIN.md`
+- Admin area (`/admin-login.html` then `/admin.html`, admins only, separate sign-in and shell): live site stats, report review with statuses and notes, member search and reversible account suspension - see `docs/ADMIN.md`
 
 ## Not built (on purpose)
 - Subscriptions and payments (parked)
