@@ -42,7 +42,7 @@ class AdminDashboardTest extends TestCase
 
     public function test_admin_page_access_rules(): void
     {
-        $this->get('/admin.html')->assertRedirect('/index.html?loginRequired=1');
+        $this->get('/admin.html')->assertRedirect('/admin-login.html');
         $this->actingAs($this->member())->get('/admin.html')->assertStatus(404);
         $this->actingAs($this->admin())->get('/admin.html')->assertOk();
     }
