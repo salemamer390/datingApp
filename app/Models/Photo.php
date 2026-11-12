@@ -10,6 +10,6 @@ class Photo extends Model
 
     public function url(): string
     {
-        return '/photos/' . $this->id;
+        return 'photos/' . $this->id;
     }
 }
