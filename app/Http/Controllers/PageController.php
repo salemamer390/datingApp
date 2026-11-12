@@ -12,7 +12,7 @@ use Illuminate\Http\Request;
  */
 class PageController extends Controller
 {
-    private const PROTECTED = ['discover', 'search', 'member', 'likes', 'messages', 'notifications', 'chat', 'settings', 'settings-profile', 'settings-photos', 'settings-privacy', 'settings-notifications', 'settings-preferences', 'settings-blocked', 'my-profile', 'view-profile', 'favorites', 'profile-views', 'blocked', 'onboarding'];
+    private const PROTECTED = ['discover', 'member', 'likes', 'messages', 'notifications', 'chat', 'settings', 'settings-profile', 'settings-photos', 'settings-privacy', 'settings-notifications', 'settings-preferences', 'settings-blocked', 'my-profile', 'view-profile', 'favorites', 'profile-views', 'blocked', 'onboarding'];
 
     public function show(Request $request, string $page = 'index')
     {
