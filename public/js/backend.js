@@ -216,7 +216,7 @@
   });
 
   /* ---------- Notifications (menu, modal, page) ---------- */
-  var NI = { like: ['pink', 'bi-heart-fill'], match: ['purple', 'bi-heart-handshake'], message: ['blue', 'bi-chat-dots-fill'], favorite: ['pink', 'bi-bookmark-heart-fill'], view: ['blue', 'bi-eye-fill'], safety: ['green', 'bi-shield-check'] };
+  var NI = { like: ['pink', 'bi-heart-fill'], match: ['purple', 'bi-heart-handshake'], message: ['blue', 'bi-chat-dots-fill'], favorite: ['pink', 'bi-bookmark-heart-fill'], view: ['blue', 'bi-eye-fill'], safety: ['green', 'bi-shield-check'], announcement: ['purple', 'bi-megaphone-fill'] };
   function notifItem(n, tag) {
     var i = NI[n.type] || NI.safety;
     return '<' + tag + ' class="notification-item' + (n.unread ? ' unread' : '') + '" data-notification="" data-nid="' + n.id + '" data-href="' + esc(n.href || 'notifications.html') + '"><span class="notification-icon ' + i[0] + '"><i class="bi ' + i[1] + '"></i></span><span class="notification-copy"><strong>' + esc(n.title) + '</strong>' + (n.body ? '<small>' + esc(n.body) + '</small>' : '') + '<time>' + esc(ago(n.at)) + '</time></span>' + (n.unread ? '<span class="unread-dot"></span>' : '') + '</' + tag + '>';
