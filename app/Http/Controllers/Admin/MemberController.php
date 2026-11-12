@@ -86,6 +86,7 @@ class MemberController extends Controller
                 'interests' => $user->interests,
                 'phone' => $user->phone,
                 'onboarding_complete' => $user->hasCompletedOnboarding(),
+                'suspended_by' => $user->suspender?->name,
             ],
             'reports' => $recent,
         ];
@@ -96,14 +97,14 @@ class MemberController extends Controller
         abort_if($user->id === $r->user()->id, 422, 'You cannot suspend your own account.');
         abort_if($user->is_admin, 422, 'Admin accounts cannot be suspended.');
         if ($user->suspended_at === null) {
-            $user->forceFill(['suspended_at' => now()])->save();
+            $user->forceFill(['suspended_at' => now(), 'suspended_by' => $r->user()->id])->save();
         }
         return ['suspended' => true];
     }
 
     public function unsuspend(User $user)
     {
-        $user->forceFill(['suspended_at' => null])->save();
+        $user->forceFill(['suspended_at' => null, 'suspended_by' => null])->save();
         return ['suspended' => false];
     }
 }
