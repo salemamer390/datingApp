@@ -37,6 +37,10 @@
     var t = $('siteToast'); if (t && window.bootstrap) bootstrap.Toast.getOrCreateInstance(t, { delay: 3500 }).show();
   }
   function fail(e) { toast((e && e.message) || 'Something went wrong. Please try again.'); }
+  if (qs.get('suspended') === '1') {
+    var showSuspended = function () { toast('Your account is suspended.'); };
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', showSuspended); else showSuspended();
+  }
   function on(type, selector, handler) {
     document.addEventListener(type, function (e) {
       var t = e.target && e.target.closest ? e.target.closest(selector) : null;
