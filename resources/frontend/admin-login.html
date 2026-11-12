@@ -21,7 +21,7 @@
 </div><script>
 document.getElementById('year').textContent = new Date().getFullYear();
 (function () {
-  if (window.LC && LC.me && LC.me.is_admin) { location.replace('/admin.html'); return; }
+  if (window.LC && LC.me && LC.me.is_admin) { location.replace('admin.html'); return; }
   var form = document.getElementById('adminLoginForm');
   var err = document.getElementById('adminLoginError');
   var btn = document.getElementById('adminLoginBtn');
@@ -29,14 +29,14 @@ document.getElementById('year').textContent = new Date().getFullYear();
     e.preventDefault();
     err.style.display = 'none';
     btn.disabled = true;
-    fetch('/api/admin-login', {
+    fetch('api/admin-login', {
       method: 'POST',
       headers: { 'Accept': 'application/json', 'Content-Type': 'application/json', 'X-CSRF-TOKEN': (window.LC && LC.csrf) || '' },
       credentials: 'same-origin',
       body: JSON.stringify({ email: document.getElementById('adminLoginEmail').value, password: document.getElementById('adminLoginPassword').value })
     }).then(function (r) {
       return r.json().catch(function () { return {}; }).then(function (j) {
-        if (r.ok && j.redirect) { location.href = j.redirect; return; }
+        if (r.ok && j.redirect) { location.href = String(j.redirect).replace(/^\//, ''); return; }
         var msg = j.message || 'Something went wrong. Please try again.';
         err.textContent = msg;
         err.style.display = 'block';
