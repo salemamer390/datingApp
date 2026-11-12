@@ -21,10 +21,12 @@
   var part = s && s.getAttribute("data-part");
   if (PARTS[part]) document.write(PARTS[part]);
   // GTranslate free website widget (https://gtranslate.io/website-translator-widget).
+  // Skipped entirely on pages whose <body> carries data-no-translate (admin.html):
+  // admin data such as member emails and reports must never leave for Google.
   // Visitor opt-in with up-front notice: no translation library loads and no page text
   // leaves the browser until the visitor reads the notice and taps Continue.
   // No account or API key needed. Consent and language choice are remembered on this device.
-  if (part === "footer") {
+  if (part === "footer" && !(document.body && document.body.hasAttribute("data-no-translate"))) {
     document.write(
       '<div id="lc-gt-gate" style="position:fixed;bottom:20px;left:20px;z-index:999998">' +
         '<button type="button" id="lc-gt-open" style="display:inline-flex;align-items:center;gap:6px;background:#fff;color:#191427;border:1px solid #eee8ed;border-radius:999px;padding:8px 14px;font-size:14px;box-shadow:0 5px 15px rgba(0,0,0,.15);cursor:pointer">&#x1F310; Translate</button>' +
