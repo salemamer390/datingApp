@@ -6,7 +6,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 
 class User extends Authenticatable
 {
-    protected $guarded = ['id', 'is_demo', 'is_admin', 'suspended_at', 'onboarding_completed_at'];
+    protected $guarded = ['id', 'is_demo', 'is_admin', 'suspended_at', 'suspended_by', 'onboarding_completed_at'];
 
     protected $hidden = ['password', 'remember_token', 'email', 'phone', 'settings'];
 
@@ -23,6 +23,11 @@ class User extends Authenticatable
     public function isSuspended(): bool
     {
         return $this->suspended_at !== null;
+    }
+
+    public function suspender()
+    {
+        return $this->belongsTo(User::class, 'suspended_by');
     }
 
     public function reportsReceived()
