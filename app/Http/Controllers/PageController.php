@@ -21,6 +21,17 @@ class PageController extends Controller
             abort(404);
         }
         $user = $request->user();
+        // The admin dashboard is separate from the member pages: guests are asked to log in,
+        // ordinary members get a plain 404 (the page is not part of their site at all).
+        if ($page === 'admin') {
+            if (! $user) {
+                return redirect('/index.html?loginRequired=1');
+            }
+            abort_unless($user->is_admin, 404);
+        }
+        if ($user && $user->isSuspended() && $page !== 'admin') {
+            return redirect('/index.html?suspended=1');
+        }
         if (in_array($page, self::PROTECTED, true) && ! $user) {
             return redirect('/index.html?loginRequired=1');
         }
