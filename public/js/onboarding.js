@@ -2,6 +2,7 @@
   'use strict';
   var LC = window.LC || {}, me = LC.me;
   if (!me) return;
+  function localUrl(url) { return typeof url === 'string' && url.charAt(0) === '/' ? url.slice(1) : url; }
   var form = document.getElementById('onboardingForm'), step = 1, busy = false, photoUrl;
   var fields = Array.from(form.querySelectorAll('fieldset')), error = document.getElementById('onboardingError');
   var next = document.getElementById('setupContinue'), back = document.getElementById('setupBack');
@@ -16,8 +17,8 @@
   function request(url, body) {
     var headers = { Accept: 'application/json', 'X-CSRF-TOKEN': LC.csrf };
     if (!(body instanceof FormData)) { headers['Content-Type'] = 'application/json'; body = JSON.stringify(body); }
-    return fetch(url, { method: body instanceof FormData ? 'POST' : 'PUT', headers: headers, credentials: 'same-origin', body: body }).then(function (r) {
-      if (r.status === 401) { location.href = '/index.html?loginRequired=1'; throw new Error('Please log in again.'); }
+    return fetch(localUrl(url), { method: body instanceof FormData ? 'POST' : 'PUT', headers: headers, credentials: 'same-origin', body: body }).then(function (r) {
+      if (r.status === 401) { location.href = 'index.html?loginRequired=1'; throw new Error('Please log in again.'); }
       return r.json().catch(function () { return {}; }).then(function (data) {
         if (!r.ok) { throw new Error(r.status === 419 ? 'Your session expired. Reload this page and try again. Your saved answers are safe.' : Object.values(data.errors || {}).flat().join(' ') || data.message || 'Could not save. Please try again.'); }
         return data;
@@ -71,7 +72,7 @@
         clearPhoto(); // A saved upload is not uploaded twice if completing the profile fails.
       }
       var result = await request('/api/onboarding/' + step, body);
-      if (step === 4) { location.href = result.redirect || '/discover.html'; return; }
+      if (step === 4) { location.href = localUrl(result.redirect || '/discover.html'); return; }
       show(step + 1);
     } catch (e) { showError(e.message || 'Could not save. Please try again.'); }
     finally { busy = false; next.disabled = false; back.disabled = false; next.textContent = step === 4 ? 'Finish and enter' : 'Save and continue'; }
@@ -79,9 +80,9 @@
   document.getElementById('onboardingLogout').addEventListener('click', async function () {
     if (busy) return;
     try {
-      var r = await fetch('/api/logout', { method: 'POST', credentials: 'same-origin', headers: { Accept: 'application/json', 'X-CSRF-TOKEN': LC.csrf } });
+      var r = await fetch('api/logout', { method: 'POST', credentials: 'same-origin', headers: { Accept: 'application/json', 'X-CSRF-TOKEN': LC.csrf } });
       if (!r.ok) throw new Error('Could not log out. Reload and try again.');
-      sessionStorage.clear(); location.href = '/index.html';
+      sessionStorage.clear(); location.href = 'index.html';
     } catch (e) { showError(e.message); }
   });
   var basicDone = profile.name && Number(profile.age) >= 18 && me.gender && profile.city && profile.country;

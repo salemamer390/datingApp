@@ -17,6 +17,9 @@
   var page = (location.pathname.split('/').pop() || 'index.html').replace('.html', '') || 'index';
   var qs = new URLSearchParams(location.search);
   var $ = function (id) { return document.getElementById(id); };
+  // Laravel is commonly opened from /datingApp/public in XAMPP. Strip a leading
+  // slash so API calls and redirects stay inside that application directory.
+  function localUrl(url) { return typeof url === 'string' && url.charAt(0) === '/' ? url.slice(1) : url; }
   var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); };
 
   function api(url, opt) {
@@ -24,10 +27,10 @@
     var headers = { 'Accept': 'application/json', 'X-CSRF-TOKEN': LC.csrf || '' };
     var body = opt.body;
     if (body && !(body instanceof FormData)) { headers['Content-Type'] = 'application/json'; body = JSON.stringify(body); }
-    return fetch(url, { method: opt.method || 'GET', headers: headers, body: body, credentials: 'same-origin' }).then(function (r) {
+    return fetch(localUrl(url), { method: opt.method || 'GET', headers: headers, body: body, credentials: 'same-origin' }).then(function (r) {
       if (r.status === 401 && me) { location.href = 'index.html?loginRequired=1'; return Promise.reject(r); }
       return r.json().catch(function () { return {}; }).then(function (j) {
-        if (!r.ok) { if (j.redirect === '/onboarding.html') { location.href = j.redirect; } var m = j && (j.message || (j.errors && Object.values(j.errors)[0][0])); return Promise.reject({ status: r.status, message: m || 'Something went wrong. Please try again.' }); }
+        if (!r.ok) { if (j.redirect) { location.href = localUrl(j.redirect); } var m = j && (j.message || (j.errors && Object.values(j.errors)[0][0])); return Promise.reject({ status: r.status, message: m || 'Something went wrong. Please try again.' }); }
         return j;
       });
     });
@@ -104,12 +107,12 @@
             var max = ageTo === '50+' ? 70 : parseInt(ageTo, 10);
             if (max >= 18) api('/api/account/settings', { method: 'PUT', body: { settings: { ageRange: String(max) } } }).catch(function () {});
           }
-          location.href = r.redirect || '/onboarding.html';
+          location.href = localUrl(r.redirect || '/onboarding.html');
         }, fail);
     } else if (f.id === 'loginForm') {
       stop(e);
       api('/api/login', { method: 'POST', body: { email: f.querySelector('input[type=email]').value, password: f.querySelector('input[type=password]').value } })
-        .then(function (r) { location.href = r.redirect || '/onboarding.html'; }, fail);
+        .then(function (r) { location.href = localUrl(r.redirect || '/onboarding.html'); }, fail);
     } else if (f.id === 'accountSettingsForm') {
       stop(e);
       // Display name and the two visibility switches are real account settings; save them.
