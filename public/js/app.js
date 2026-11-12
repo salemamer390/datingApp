@@ -21,7 +21,7 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("nightModeToggle")?.addEventListener("click", () => { LCAppearance.toggleMode(); });
   refreshAppearanceButtons();
   document.addEventListener("lc:appearance", refreshAppearanceButtons);
-  const protectedPages = new Set(["discover.html", "search.html", "member.html", "likes.html", "messages.html", "notifications.html", "chat.html", "settings.html", "settings-profile.html", "settings-photos.html", "settings-privacy.html", "settings-notifications.html", "settings-preferences.html", "settings-blocked.html", "my-profile.html", "view-profile.html", "favorites.html", "profile-views.html", "blocked.html"]);
+  const protectedPages = new Set(["discover.html", "member.html", "likes.html", "messages.html", "notifications.html", "chat.html", "settings.html", "settings-profile.html", "settings-photos.html", "settings-privacy.html", "settings-notifications.html", "settings-preferences.html", "settings-blocked.html", "my-profile.html", "view-profile.html", "favorites.html", "profile-views.html", "blocked.html"]);
   const currentPage = location.pathname.split("/").pop() || "index.html";
   const signedIn = sessionStorage.getItem("loveconnect_signed_in") === "yes";
   if (protectedPages.has(currentPage) && !signedIn) {
