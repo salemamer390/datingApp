@@ -11,6 +11,7 @@ return new class extends Migration
         Schema::table('users', function (Blueprint $t) {
             $t->boolean('is_admin')->default(false)->index()->after('is_demo');
             $t->timestamp('suspended_at')->nullable()->after('last_seen_at');
+            $t->foreignId('suspended_by')->nullable()->after('suspended_at')->constrained('users')->nullOnDelete();
         });
         Schema::table('reports', function (Blueprint $t) {
             $t->string('status', 20)->default('pending')->index()->after('reason');
@@ -27,6 +28,7 @@ return new class extends Migration
             $t->dropColumn(['status', 'admin_note', 'reviewed_at']);
         });
         Schema::table('users', function (Blueprint $t) {
+            $t->dropConstrainedForeignId('suspended_by');
             $t->dropColumn(['is_admin', 'suspended_at']);
         });
     }
