@@ -5,7 +5,14 @@
 (function () {
   'use strict';
   var LC = window.LC || {};
-  if (!LC.me) return;
+  if (!LC.me || !LC.me.is_admin) { location.replace('/admin-login.html'); return; }
+  var barName = document.getElementById('adminBarName');
+  if (barName) barName.textContent = LC.me.name + (LC.me.email ? ' (' + LC.me.email + ')' : '');
+  var logoutBtn = document.getElementById('adminLogout');
+  if (logoutBtn) logoutBtn.addEventListener('click', function () {
+    fetch('/api/logout', { method: 'POST', headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': LC.csrf || '' }, credentials: 'same-origin' })
+      .finally(function () { location.replace('/admin-login.html'); });
+  });
   var $ = function (id) { return document.getElementById(id); };
   var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); };
 
