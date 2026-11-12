@@ -235,6 +235,7 @@
         '<dt class="col-sm-3">Bio</dt><dd class="col-sm-9">' + esc(m.bio || 'None') + '</dd>' +
         '<dt class="col-sm-3">Joined</dt><dd class="col-sm-9">' + fmtDate(m.created_at) + '</dd>' +
         '<dt class="col-sm-3">Last seen</dt><dd class="col-sm-9">' + ago(m.last_seen_at) + '</dd>' +
+        '<dt class="col-sm-3">Suspended</dt><dd class="col-sm-9">' + (m.suspended ? 'Yes' + (m.suspended_by ? ' - by ' + esc(m.suspended_by) : '') : 'No') + '</dd>' +
         '<dt class="col-sm-3">Profile complete</dt><dd class="col-sm-9">' + (m.onboarding_complete ? 'Yes' : 'No') + '</dd></dl>';
       h += '<div class="d-flex gap-2 flex-wrap mb-3">';
       if (!m.is_admin && !m.is_demo) {
