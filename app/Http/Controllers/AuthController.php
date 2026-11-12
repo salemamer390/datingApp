@@ -53,6 +53,24 @@ class AuthController extends Controller
         return ['ok' => true, 'redirect' => $r->user()->hasCompletedOnboarding() ? '/discover.html' : '/onboarding.html'];
     }
 
+    /** Separate entry point for the owner admin area. Members are never signed in from here. */
+    public function adminLogin(Request $r)
+    {
+        $d = $r->validate(['email' => 'required|email', 'password' => 'required|string']);
+        if (! Auth::attempt(['email' => strtolower($d['email']), 'password' => $d['password']])) {
+            return response()->json(['message' => 'Email or password is incorrect.'], 422);
+        }
+        if (! $r->user()->is_admin) {
+            Auth::logout();
+            $r->session()->invalidate();
+            $r->session()->regenerateToken();
+            return response()->json(['message' => 'This sign-in is for the site owner only.'], 403);
+        }
+        $r->session()->regenerate();
+        $r->user()->forceFill(['last_seen_at' => now()])->save();
+        return ['ok' => true, 'redirect' => '/admin.html'];
+    }
+
     public function logout(Request $r)
     {
         Auth::logout();
