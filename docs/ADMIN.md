@@ -56,8 +56,8 @@ Admin access is granted deliberately per account email:
 - On a no-SSH host: run the commented `UPDATE` at the bottom of `database/admin_mysql.sql`
   in phpMyAdmin with the chosen account's email.
 
-The account does not need to complete onboarding to use the dashboard. Open `/admin.html`
-after logging in.
+The account does not need to complete onboarding to use the dashboard. Open
+`/admin-login.html` and sign in with that account.
 
 ## Suspended members
 
