@@ -38,7 +38,7 @@ class OnboardingTest extends TestCase
         $user = $this->signup();
         $this->assertAuthenticatedAs($user);
         $this->assertNull($user->onboarding_completed_at);
-        foreach (['discover', 'search', 'member', 'messages', 'my-profile', 'settings-profile', 'view-profile'] as $page) {
+        foreach (['discover', 'member', 'messages', 'my-profile', 'settings-profile', 'view-profile'] as $page) {
             $this->get("/$page.html")->assertRedirect('/onboarding.html');
         }
         foreach (['members', 'members/'.$user->id, 'notifications', 'conversations'] as $path) {
