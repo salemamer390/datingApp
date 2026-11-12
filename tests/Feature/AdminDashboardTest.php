@@ -125,6 +125,9 @@ class AdminDashboardTest extends TestCase
         $admin = $this->admin();
 
         $this->actingAs($admin)->putJson("/api/admin/members/{$m->id}/suspend")->assertOk()->assertJson(['suspended' => true]);
+        $this->assertSame($admin->id, $m->fresh()->suspended_by);
+        $j = $this->getJson("/api/admin/members/{$m->id}")->assertOk()->json();
+        $this->assertSame($admin->name, $j['member']['suspended_by']);
 
         // Existing session is cut off from the API but can still log out.
         $m = $m->fresh(); // actingAs holds an instance; reload so it carries suspended_at
@@ -137,6 +140,7 @@ class AdminDashboardTest extends TestCase
             ->assertStatus(403)->assertJsonPath('message', 'This account is suspended. Contact support if you think this is a mistake.');
 
         $this->actingAs($admin)->deleteJson("/api/admin/members/{$m->id}/suspend")->assertOk()->assertJson(['suspended' => false]);
+        $this->assertNull($m->fresh()->suspended_by);
         $this->postJson('/api/login', ['email' => 'target@example.com', 'password' => 'password123'])->assertOk();
     }
 
