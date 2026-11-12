@@ -49,6 +49,12 @@ Route::prefix('api')->group(function () {
             Route::get('members/{user}', [App\Http\Controllers\Admin\MemberController::class, 'show'])->whereNumber('user');
             Route::put('members/{user}/suspend', [App\Http\Controllers\Admin\MemberController::class, 'suspend'])->whereNumber('user');
             Route::delete('members/{user}/suspend', [App\Http\Controllers\Admin\MemberController::class, 'unsuspend'])->whereNumber('user');
+            Route::get('site-controls', [App\Http\Controllers\Admin\SiteControlController::class, 'show']);
+            Route::put('site-controls', [App\Http\Controllers\Admin\SiteControlController::class, 'update']);
+            Route::get('system', [App\Http\Controllers\Admin\SystemController::class, 'show']);
+            Route::get('announcements', [App\Http\Controllers\Admin\AnnouncementController::class, 'index']);
+            Route::get('announcements/audience', [App\Http\Controllers\Admin\AnnouncementController::class, 'audience']);
+            Route::post('announcements', [App\Http\Controllers\Admin\AnnouncementController::class, 'store']);
         });
         Route::put('account/profile', [AccountController::class, 'profile']);
         Route::put('account/settings', [AccountController::class, 'settings']);
