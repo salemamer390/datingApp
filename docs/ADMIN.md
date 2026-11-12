@@ -15,6 +15,8 @@ database data; there is no sample content.
   demo), open a member's details with their report history, and suspend or reactivate an account.
   Suspending is reversible: the member can no longer log in and every API call answers 403 until
   reactivated. Admin accounts cannot be suspended, and an admin cannot suspend themselves.
+  Every suspension records which admin applied it (`suspended_by`) and when (`suspended_at`),
+  and every reviewed report records the reviewer and time.
 
 Member accounts are never deleted from this screen on purpose.
 
