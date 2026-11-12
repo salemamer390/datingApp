@@ -615,7 +615,7 @@
         stop(e);
         api('/api/account/photos/' + b.closest('.settings-photo-tile').dataset.photoId, { method: 'DELETE' }).then(function () { location.reload(); }, fail);
       });
-      var sp = $('savePhotos'); if (sp) sp.addEventListener('click', function (e) { stop(e); toast('Photos saved.'); }, true);
+      var sp = $('savePhotos'); if (sp) sp.addEventListener('click', function (e) { stop(e); toast('Photos are saved as soon as you add or remove them.'); }, true);
     }
     if (page === 'settings-profile') initProfileQuestions();
   }
