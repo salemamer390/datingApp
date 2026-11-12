@@ -39,6 +39,17 @@ Route::prefix('api')->group(function () {
             Route::post('notifications/read-all', [NotificationController::class, 'readAll']);
             Route::post('notifications/{id}/read', [NotificationController::class, 'read']);
         });
+        // Admin dashboard: real data and actions for site management. Not behind EnsureProfileComplete:
+        // an admin account is for managing the site, not for dating, so onboarding is not required.
+        Route::middleware(App\Http\Middleware\EnsureAdmin::class)->prefix('admin')->name('admin.')->group(function () {
+            Route::get('overview', [App\Http\Controllers\Admin\DashboardController::class, 'overview']);
+            Route::get('reports', [App\Http\Controllers\Admin\ReportController::class, 'index']);
+            Route::put('reports/{report}', [App\Http\Controllers\Admin\ReportController::class, 'update'])->whereNumber('report');
+            Route::get('members', [App\Http\Controllers\Admin\MemberController::class, 'index']);
+            Route::get('members/{user}', [App\Http\Controllers\Admin\MemberController::class, 'show'])->whereNumber('user');
+            Route::put('members/{user}/suspend', [App\Http\Controllers\Admin\MemberController::class, 'suspend'])->whereNumber('user');
+            Route::delete('members/{user}/suspend', [App\Http\Controllers\Admin\MemberController::class, 'unsuspend'])->whereNumber('user');
+        });
         Route::put('account/profile', [AccountController::class, 'profile']);
         Route::put('account/settings', [AccountController::class, 'settings']);
         Route::post('account/photos', [AccountController::class, 'uploadPhotos']);
