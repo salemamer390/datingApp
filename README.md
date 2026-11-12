@@ -12,12 +12,12 @@ Your original HTML/Bootstrap front end, served unchanged by Laravel and connecte
 - Notifications: likes, matches, messages, favorites, profile views, with unread badge and mark-all-read
 - Settings: account (email, phone, language, password), privacy and notification switches, preferences
 - Delete account (asks for password)
+- Admin dashboard (`/admin.html`, admins only): live site stats, report review with statuses and notes, member search and reversible account suspension - see `docs/ADMIN.md`
 
 ## Not built (on purpose)
 - Subscriptions and payments (parked)
-- Email verification, password reset emails, admin/moderation screen for reports
+- Email verification and password reset emails
 - Real-time sockets (polling is used), image moderation. The "Trash" tab in Messages stays empty: the original UI has no control that moves a conversation to Trash.
-- Report button works and saves to the `reports` table, but there is no admin screen to review them yet
 - No "forgot password" link exists in the original UI, so no reset flow was added
 - Language switching still only changes direction/labels like the original; no translations were added
 
