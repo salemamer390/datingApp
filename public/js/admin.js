@@ -46,16 +46,18 @@
   }
 
   /* ---------- Section switching ---------- */
-  var sections = ['overview', 'reports', 'members'];
+  var sections = ['overview', 'reports', 'members', 'announcements', 'controls', 'system'];
+  var sectionEls = { overview: 'adminSectionOverview', reports: 'adminSectionReports', members: 'adminSectionMembers', announcements: 'adminSectionAnnouncements', controls: 'adminSectionControls', system: 'adminSectionSystem' };
   function showSection(name) {
     if (sections.indexOf(name) < 0) name = 'overview';
     document.querySelectorAll('#adminNav a').forEach(function (a) { a.classList.toggle('active', a.dataset.adminSection === name); });
-    $('adminSectionOverview').classList.toggle('d-none', name !== 'overview');
-    $('adminSectionReports').classList.toggle('d-none', name !== 'reports');
-    $('adminSectionMembers').classList.toggle('d-none', name !== 'members');
+    sections.forEach(function (sec) { $(sectionEls[sec]).classList.toggle('d-none', sec !== name); });
     if (name === 'overview') loadOverview();
     if (name === 'reports') loadReports();
     if (name === 'members') loadMembers();
+    if (name === 'announcements') loadAnnouncements();
+    if (name === 'controls') loadControls();
+    if (name === 'system') loadSystem();
   }
   document.querySelectorAll('#adminNav a').forEach(function (a) {
     a.addEventListener('click', function (e) { e.preventDefault(); location.hash = a.dataset.adminSection; });
@@ -267,6 +269,113 @@
       else if (!$('adminMemberDetail').classList.contains('d-none')) openMember(id);
       else loadMembers();
     }).catch(fail);
+  }
+
+  /* ---------- Announcements ---------- */
+  var announceReady = false, announceRecipients = 0;
+  function resetAnnounceForm() {
+    announceReady = false;
+    $('adminAnnouncePreview').classList.add('d-none');
+    $('adminAnnounceSend').classList.add('d-none');
+    $('adminAnnounceCancel').classList.add('d-none');
+    $('adminAnnounceAudience').textContent = '';
+  }
+  function loadAnnouncements() {
+    resetAnnounceForm();
+    api('/api/admin/announcements').then(function (j) {
+      $('adminAnnounceEmpty').classList.toggle('d-none', j.data.length > 0);
+      $('adminAnnounceHistory').innerHTML = j.data.map(function (a) {
+        return '<div class="admin-row"><div class="admin-row-main">' +
+          '<div class="d-flex align-items-center gap-2 flex-wrap"><span class="notification-icon purple"><i class="bi bi-megaphone-fill"></i></span><strong>' + esc(a.title) + '</strong></div>' +
+          '<div class="mt-1">' + esc(a.body) + '</div>' +
+          '<div class="small text-muted mt-1">Sent to ' + a.recipient_count + ' member' + (a.recipient_count === 1 ? '' : 's') +
+          (a.created_by ? ' by ' + esc(a.created_by) : '') + ' · ' + fmtDate(a.created_at) + '</div></div></div>';
+      }).join('');
+    }).catch(fail);
+  }
+  $('adminAnnouncePreviewBtn').addEventListener('click', function () {
+    var title = $('adminAnnounceTitle').value.trim(), body = $('adminAnnounceBody').value.trim();
+    if (!title || !body) { toast('Write a title and a message first.'); return; }
+    var btn = $('adminAnnouncePreviewBtn');
+    btn.disabled = true;
+    api('/api/admin/announcements/audience').then(function (j) {
+      btn.disabled = false;
+      announceRecipients = j.recipients;
+      $('adminAnnouncePreview').innerHTML =
+        '<p class="small text-muted mb-2">This is exactly what members will see in their notifications:</p>' +
+        '<div class="notification-item unread" style="max-width:420px"><span class="notification-icon purple"><i class="bi bi-megaphone-fill"></i></span>' +
+        '<span class="notification-copy"><strong>' + esc(title) + '</strong><small>' + esc(body) + '</small><time>Just now</time></span><span class="unread-dot"></span></div>';
+      $('adminAnnouncePreview').classList.remove('d-none');
+      $('adminAnnounceAudience').textContent = announceRecipients
+        ? 'This goes to ' + announceRecipients + ' member' + (announceRecipients === 1 ? '' : 's') + ' (demo accounts and members who opted out of website updates are skipped).'
+        : 'There are no eligible members right now, so nothing would be sent.';
+      var send = $('adminAnnounceSend');
+      send.textContent = 'Send to ' + announceRecipients + ' member' + (announceRecipients === 1 ? '' : 's');
+      send.classList.toggle('d-none', announceRecipients === 0);
+      $('adminAnnounceCancel').classList.remove('d-none');
+      announceReady = announceRecipients > 0;
+    }).catch(function (e) { btn.disabled = false; fail(e); });
+  });
+  $('adminAnnounceCancel').addEventListener('click', resetAnnounceForm);
+  $('adminAnnounceSend').addEventListener('click', function () {
+    if (!announceReady) return;
+    var send = $('adminAnnounceSend');
+    send.disabled = true;
+    api('/api/admin/announcements', { method: 'POST', body: { title: $('adminAnnounceTitle').value.trim(), body: $('adminAnnounceBody').value.trim() } })
+      .then(function (j) {
+        send.disabled = false;
+        $('adminAnnounceTitle').value = '';
+        $('adminAnnounceBody').value = '';
+        toast('Announcement sent to ' + j.recipient_count + ' member' + (j.recipient_count === 1 ? '' : 's') + '.');
+        loadAnnouncements();
+      })
+      .catch(function (e) { send.disabled = false; fail(e); });
+  });
+
+  /* ---------- Site controls ---------- */
+  function loadControls() {
+    var sw = $('adminRegOpenSwitch');
+    sw.disabled = true;
+    $('adminControlsStatus').textContent = '';
+    api('/api/admin/site-controls').then(function (j) {
+      sw.checked = !!j.registrations_open;
+      sw.disabled = false;
+    }).catch(fail);
+  }
+  $('adminRegOpenSwitch').addEventListener('change', function () {
+    var sw = $('adminRegOpenSwitch');
+    sw.disabled = true;
+    api('/api/admin/site-controls', { method: 'PUT', body: { registrations_open: sw.checked } }).then(function (j) {
+      sw.disabled = false;
+      sw.checked = !!j.registrations_open;
+      $('adminControlsStatus').textContent = j.registrations_open
+        ? 'Registration is open. New members can sign up.'
+        : 'Registration is closed. The signup form now refuses new accounts.';
+      toast(j.registrations_open ? 'Registration opened.' : 'Registration closed.');
+    }).catch(function (e) { sw.disabled = false; sw.checked = !sw.checked; fail(e); });
+  });
+
+  /* ---------- System ---------- */
+  function loadSystem() {
+    var body = $('adminSystemBody');
+    body.innerHTML = '<p class="text-muted">Loading…</p>';
+    api('/api/admin/system').then(function (j) {
+      var h = '<dl class="row small">' +
+        '<dt class="col-sm-3">PHP</dt><dd class="col-sm-9">' + esc(j.php) + '</dd>' +
+        '<dt class="col-sm-3">Laravel</dt><dd class="col-sm-9">' + esc(j.laravel) + '</dd>' +
+        '<dt class="col-sm-3">Environment</dt><dd class="col-sm-9">' + esc(j.environment) + (j.debug ? ' <span class="badge text-bg-danger">debug ON</span>' : '') + '</dd>' +
+        '<dt class="col-sm-3">Database</dt><dd class="col-sm-9">' + (j.database.ok
+          ? '<span class="badge text-bg-success">connected</span> ' + esc(j.database.driver)
+          : '<span class="badge text-bg-danger">not reachable</span> ' + esc(j.database.driver)) + '</dd>' +
+        '<dt class="col-sm-3">Registration</dt><dd class="col-sm-9">' + (j.registrations_open ? 'Open' : 'Closed') + '</dd>' +
+        '<dt class="col-sm-3">Mail</dt><dd class="col-sm-9">' + esc(j.mailer) + '<div class="text-muted">' + esc(j.mail_note) + '</div></dd></dl>';
+      h += '<h2 class="h6 mb-2">Setup checks</h2><ul class="list-unstyled small mb-0">';
+      Object.keys(j.checks).forEach(function (k) {
+        h += '<li class="mb-1"><i class="bi ' + (j.checks[k] ? 'bi-check-circle-fill text-success' : 'bi-x-circle-fill text-danger') + ' me-1"></i>' + esc(k) + '</li>';
+      });
+      h += '</ul>';
+      body.innerHTML = h;
+    }).catch(function (e) { body.innerHTML = ''; fail(e); });
   }
 
   /* ---------- Start ---------- */
