@@ -15,6 +15,7 @@ Route::get('/{page}.html', [PageController::class, 'show'])->where('page', '[a-z
 
 Route::prefix('api')->group(function () {
     Route::post('signup', [AuthController::class, 'signup'])->middleware('throttle:10,1');
+    Route::post('admin-login', [AuthController::class, 'adminLogin'])->middleware('throttle:10,1');
     Route::post('login', [AuthController::class, 'login'])->middleware('throttle:10,1');
 
     Route::middleware(['auth', App\Http\Middleware\Seen::class])->group(function () {
