@@ -5,7 +5,9 @@
 ALTER TABLE `users`
   ADD COLUMN `is_admin` tinyint(1) NOT NULL DEFAULT 0 AFTER `is_demo`,
   ADD COLUMN `suspended_at` timestamp NULL DEFAULT NULL AFTER `last_seen_at`,
-  ADD INDEX `users_is_admin_index` (`is_admin`);
+  ADD COLUMN `suspended_by` bigint unsigned NULL DEFAULT NULL AFTER `suspended_at`,
+  ADD INDEX `users_is_admin_index` (`is_admin`),
+  ADD CONSTRAINT `users_suspended_by_foreign` FOREIGN KEY (`suspended_by`) REFERENCES `users` (`id`) ON DELETE SET NULL;
 
 ALTER TABLE `reports`
   ADD COLUMN `status` varchar(20) NOT NULL DEFAULT 'pending' AFTER `reason`,
