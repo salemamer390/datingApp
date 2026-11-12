@@ -99,3 +99,18 @@
     })();
   }
 })();
+
+/* Footer "Privacy": some pages (settings, onboarding) do not carry the privacy modal. There the link opens it on the home page instead of doing nothing. */
+(function () {
+  document.addEventListener('click', function (e) {
+    var a = e.target.closest && e.target.closest('a[data-bs-target="#privacyModal"]');
+    if (!a || document.getElementById('privacyModal')) return;
+    e.preventDefault();
+    location.href = 'index.html?privacy=1';
+  });
+  window.addEventListener('load', function () {
+    if (new URLSearchParams(location.search).get('privacy') !== '1') return;
+    var m = document.getElementById('privacyModal');
+    if (m && window.bootstrap) window.bootstrap.Modal.getOrCreateInstance(m).show();
+  });
+})();
