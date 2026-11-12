@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Feed;
+use App\Models\SiteSetting;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -11,6 +12,9 @@ class AuthController extends Controller
 {
     public function signup(Request $r)
     {
+        if (! SiteSetting::registrationsOpen()) {
+            return response()->json(['message' => 'New registrations are currently closed. Please check back soon.'], 403);
+        }
         if (is_string($r->input('email'))) {
             $r->merge(['email' => strtolower(trim($r->input('email')))]);
         }
