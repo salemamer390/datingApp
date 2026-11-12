@@ -6,7 +6,7 @@ Your original HTML/Bootstrap front end, served unchanged by Laravel and connecte
 - Sign up / log in / log out (hashed passwords, server sessions, CSRF, login throttling)
 - Profiles: name, age, gender, city, country, bio, goal, interests, extra profile questions
 - Photo upload (up to 9, jpg/png/webp, 5 MB each), remove, main photo
-- Discover and Search: server-side filters and pagination (24 per page)
+- Discover: server-side filters and pagination (24 per page)
 - Likes (with mutual-match detection), favorites, profile views, blocking, reporting
 - Messages: real conversations between members (chat dock on Discover, Messages page, chat page; refreshes every 30 s while the tab is visible and right after you send a message)
 - Notifications: likes, matches, messages, favorites, profile views, with unread badge and mark-all-read
