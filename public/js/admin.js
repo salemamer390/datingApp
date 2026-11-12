@@ -5,13 +5,15 @@
 (function () {
   'use strict';
   var LC = window.LC || {};
-  if (!LC.me || !LC.me.is_admin) { location.replace('/admin-login.html'); return; }
+  // Keep admin requests and redirects inside the app folder when it is served from a subfolder (e.g. XAMPP /datingApp/public).
+  function localUrl(url) { return typeof url === 'string' && url.charAt(0) === '/' ? url.slice(1) : url; }
+  if (!LC.me || !LC.me.is_admin) { location.replace('admin-login.html'); return; }
   var barName = document.getElementById('adminBarName');
   if (barName) barName.textContent = LC.me.name + (LC.me.email ? ' (' + LC.me.email + ')' : '');
   var logoutBtn = document.getElementById('adminLogout');
   if (logoutBtn) logoutBtn.addEventListener('click', function () {
-    fetch('/api/logout', { method: 'POST', headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': LC.csrf || '' }, credentials: 'same-origin' })
-      .finally(function () { location.replace('/admin-login.html'); });
+    fetch('api/logout', { method: 'POST', headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': LC.csrf || '' }, credentials: 'same-origin' })
+      .finally(function () { location.replace('admin-login.html'); });
   });
   var $ = function (id) { return document.getElementById(id); };
   var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); };
@@ -21,7 +23,7 @@
     var headers = { 'Accept': 'application/json', 'X-CSRF-TOKEN': LC.csrf || '' };
     var body = opt.body;
     if (body && !(body instanceof FormData)) { headers['Content-Type'] = 'application/json'; body = JSON.stringify(body); }
-    return fetch(url, { method: opt.method || 'GET', headers: headers, body: body, credentials: 'same-origin' }).then(function (r) {
+    return fetch(localUrl(url), { method: opt.method || 'GET', headers: headers, body: body, credentials: 'same-origin' }).then(function (r) {
       return r.json().catch(function () { return {}; }).then(function (j) {
         if (!r.ok) { var m = j && (j.message || (j.errors && Object.values(j.errors)[0][0])); return Promise.reject({ status: r.status, message: m || 'Something went wrong. Please try again.' }); }
         return j;
